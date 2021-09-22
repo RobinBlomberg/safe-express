@@ -1,4 +1,5 @@
 const { asyncHandler } = require('@robinblomberg/express-async-handler');
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const Safe = require('./types');
 
@@ -12,6 +13,10 @@ class SafeApp {
 
   constructor() {
     this.app = express();
+
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(cookieParser());
   }
 
   /**
@@ -29,7 +34,7 @@ class SafeApp {
    */
   createRouter() {
     const router = /** @type {Safe.Router<TApi, TBasePath>} */ (
-      express.Router()
+      /** @type {unknown} */ (express.Router())
     );
 
     router.on = (target, ...handlers) => {
@@ -50,14 +55,14 @@ class SafeApp {
    * @param {() => void} [callback]
    */
   listen(port, callback) {
-    return this.app.listen(port, callback);
+    return this.app.listen(Number(port), callback);
   }
 
   /**
    * @param {any[]} args
    */
   use(...args) {
-    return this.app.use(...args);
+    this.app.use(...args);
   }
 }
 

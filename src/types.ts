@@ -2,7 +2,6 @@ import {
   NextFunction as ExpressNextFunction,
   Request as ExpressRequest,
   Response as ExpressResponse,
-  Router as ExpressRouter,
 } from 'express-serve-static-core';
 
 export type Api = {
@@ -96,8 +95,8 @@ export type ResponseBodyOf<
 export type Route = {
   from?: unknown;
   params?: Params;
-  to: unknown;
   query?: Query;
+  to: unknown;
 };
 
 export type RouteOf<
@@ -105,7 +104,10 @@ export type RouteOf<
   TEndpoint extends EndpointOf<TApi>
 > = Route & TApi['routes'][TEndpoint];
 
-export type Router<TApi extends Api, TBasePath extends Path> = ExpressRouter & {
+export type Router<TApi extends Api, TBasePath extends Path> = RequestHandler<
+  TApi,
+  EndpointOf<TApi>
+> & {
   on: <TEndpoint extends `${Method} ${TBasePath}${string}` & EndpointOf<TApi>>(
     endpoint: TEndpoint,
     ...handlers: RequestHandler<TApi, TEndpoint>[]
