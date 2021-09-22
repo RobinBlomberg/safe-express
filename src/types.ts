@@ -6,7 +6,7 @@ import {
 
 export type Api = {
   errors: ErrorResponseBody;
-  locals: Locals;
+  props: Props;
   routes: Routes;
 };
 
@@ -25,12 +25,6 @@ export type ErrorResponseBody = {
 };
 
 export type ErrorResponseBodyOf<TApi extends Api> = TApi['errors'];
-
-export type Locals = {
-  [K in string]?: unknown;
-};
-
-export type LocalsOf<TApi extends Api> = TApi['locals'];
 
 export type Method =
   | 'DELETE'
@@ -52,6 +46,12 @@ export type ParamsOf<
 
 export type Path = `/${string}`;
 
+export type Props = {
+  [K in string]?: unknown;
+};
+
+export type PropsOf<TApi extends Api> = TApi['props'];
+
 export type RequestBodyOf<
   TApi extends Api,
   TEndpoint extends EndpointOf<TApi>
@@ -64,9 +64,9 @@ export type Request<
   ParamsOf<TApi, TEndpoint>,
   ResponseBodyOf<TApi, TEndpoint>,
   RequestBodyOf<TApi, TEndpoint>,
-  QueryOf<TApi, TEndpoint>,
-  LocalsOf<TApi>
->;
+  QueryOf<TApi, TEndpoint>
+> &
+  PropsOf<TApi>;
 
 export type RequestHandler<
   TApi extends Api,
