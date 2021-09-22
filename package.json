@@ -1,0 +1,23 @@
+{
+  "name": "@robinblomberg/safe-express",
+  "version": "0.0.1",
+  "author": "Robin Blomberg",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobinBlomberg/safe-express.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RobinBlomberg/safe-express/issues"
+  },
+  "homepage": "https://github.com/RobinBlomberg/safe-express#readme",
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/express-serve-static-core": "^4.17.24"
+  },
+  "dependencies": {
+    "@robinblomberg/express-async-handler": "^1.0.0",
+    "express": "^4.17.1"
+  }
+}
