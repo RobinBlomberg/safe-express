@@ -6,6 +6,7 @@ export { CookieOptions, ErrorRequestHandler } from 'express-serve-static-core';
 export { Safe };
 
 export class SafeApp<TApi extends Safe.Api> {
+  constructor(options: Safe.SafeAppOptions);
   createController<TEndpoint extends Safe.EndpointOf<TApi>>(
     requestHandler: Safe.SafeRequestHandler<TApi, TEndpoint>
   ): Safe.SafeRequestHandler<TApi, TEndpoint>;
