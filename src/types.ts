@@ -1,3 +1,4 @@
+import { CorsOptions } from 'cors';
 import {
   NextFunction as ExpressNextFunction,
   Request as ExpressRequest,
@@ -95,6 +96,11 @@ export type QueryOf<
   TApi extends Api,
   TEndpoint extends EndpointOf<TApi>
 > = RouteOf<TApi, TEndpoint>['query'];
+
+export type SafeAppOptions = {
+  cors?: CorsOptions;
+  debug?: boolean;
+};
 
 export type SafeRequest<
   TApi extends Api,

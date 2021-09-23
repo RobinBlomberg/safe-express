@@ -1,6 +1,8 @@
 const { asyncHandler } = require('@robinblomberg/express-async-handler');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const express = require('express');
+const morgan = require('morgan');
 const Safe = require('./types');
 
 /**
@@ -11,12 +13,20 @@ class SafeApp {
   /** @type {express.Express} */
   app;
 
-  constructor() {
+  /**
+   * @param {Safe.SafeAppOptions} options
+   */
+  constructor(options) {
     this.app = express();
+
+    if (options.debug) {
+      this.app.use(morgan('dev'));
+    }
 
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cookieParser());
+    this.app.use(cors(options.cors));
   }
 
   /**
