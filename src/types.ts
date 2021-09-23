@@ -13,8 +13,8 @@ export type Api = {
 export type ApiDefinition<TApi extends Api> = TApi;
 
 export type Controller<TApi extends Api, TEndpoint extends EndpointOf<TApi>> = (
-  requestHandler: RequestHandler<TApi, TEndpoint>
-) => RequestHandler<TApi, TEndpoint>;
+  requestHandler: SafeRequestHandler<TApi, TEndpoint>
+) => SafeRequestHandler<TApi, TEndpoint>;
 
 export type Endpoint = `${Method} ${Path}`;
 
@@ -52,46 +52,6 @@ export type Props = {
 
 export type PropsOf<TApi extends Api> = TApi['props'];
 
-export type RequestBodyOf<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = RouteOf<TApi, TEndpoint>['from'];
-
-export type Request<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = ExpressRequest<
-  ParamsOf<TApi, TEndpoint>,
-  ResponseBodyOf<TApi, TEndpoint>,
-  RequestBodyOf<TApi, TEndpoint>,
-  QueryOf<TApi, TEndpoint>
-> &
-  PropsOf<TApi>;
-
-export type RequestHandler<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = (
-  req: Request<TApi, TEndpoint>,
-  res: Response<TApi, TEndpoint>,
-  next: ExpressNextFunction
-) => void;
-
-export type RequestHandlerArray<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi> = EndpointOf<TApi>
-> = [RequestHandler<TApi, TEndpoint>, ...RequestHandler<TApi, TEndpoint>[]];
-
-export type Response<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = ExpressResponse<ResponseBodyOf<TApi, TEndpoint>>;
-
-export type ResponseBodyOf<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = RouteOf<TApi, TEndpoint>['to'] | ErrorResponseBodyOf<TApi>;
-
 export type Route = {
   from?: unknown;
   params?: Params;
@@ -104,13 +64,13 @@ export type RouteOf<
   TEndpoint extends EndpointOf<TApi>
 > = Route & TApi['routes'][TEndpoint];
 
-export type Router<TApi extends Api, TBasePath extends Path> = RequestHandler<
-  TApi,
-  EndpointOf<TApi>
-> & {
+export type Router<
+  TApi extends Api,
+  TBasePath extends Path
+> = SafeRequestHandler<TApi, EndpointOf<TApi>> & {
   on: <TEndpoint extends `${Method} ${TBasePath}${string}` & EndpointOf<TApi>>(
     endpoint: TEndpoint,
-    ...handlers: RequestHandler<TApi, TEndpoint>[]
+    ...handlers: SafeRequestHandler<TApi, TEndpoint>[]
   ) => void;
 };
 
@@ -128,10 +88,45 @@ export type Routes = {
 };
 
 export type Query = {
-  [K in string]?: string;
+  [K in string]?: string | string[] | Query | Query[];
 };
 
 export type QueryOf<
   TApi extends Api,
   TEndpoint extends EndpointOf<TApi>
 > = RouteOf<TApi, TEndpoint>['query'];
+
+export type SafeRequest<
+  TApi extends Api,
+  TEndpoint extends EndpointOf<TApi>
+> = ExpressRequest<
+  ParamsOf<TApi, TEndpoint>,
+  SafeResponseBodyOf<TApi, TEndpoint>,
+  SafeRequestBodyOf<TApi, TEndpoint>,
+  QueryOf<TApi, TEndpoint>
+> &
+  PropsOf<TApi>;
+
+export type SafeRequestBodyOf<
+  TApi extends Api,
+  TEndpoint extends EndpointOf<TApi>
+> = RouteOf<TApi, TEndpoint>['from'];
+
+export type SafeRequestHandler<
+  TApi extends Api,
+  TEndpoint extends EndpointOf<TApi>
+> = (
+  req: SafeRequest<TApi, TEndpoint>,
+  res: SafeResponse<TApi, TEndpoint>,
+  next: ExpressNextFunction
+) => void;
+
+export type SafeResponse<
+  TApi extends Api,
+  TEndpoint extends EndpointOf<TApi>
+> = ExpressResponse<SafeResponseBodyOf<TApi, TEndpoint>>;
+
+export type SafeResponseBodyOf<
+  TApi extends Api,
+  TEndpoint extends EndpointOf<TApi>
+> = RouteOf<TApi, TEndpoint>['to'] | ErrorResponseBodyOf<TApi>;

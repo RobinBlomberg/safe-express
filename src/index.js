@@ -21,12 +21,10 @@ class SafeApp {
 
   /**
    * @template {Safe.EndpointOf<TApi>} TEndpoint
-   * @param {Safe.RequestHandler<TApi, TEndpoint>} requestHandler
+   * @param {Safe.SafeRequestHandler<TApi, TEndpoint>} requestHandler
    */
   createController(requestHandler) {
-    return /** @type {Safe.RequestHandler<TApi, TEndpoint>} */ (
-      asyncHandler(requestHandler)
-    );
+    return asyncHandler(/** @type {*} */ (requestHandler));
   }
 
   /**
@@ -59,7 +57,7 @@ class SafeApp {
   }
 
   /**
-   * @param {any[]} args
+   * @param {Parameters<import('express-serve-static-core').ApplicationRequestHandler<void>>} args
    */
   use(...args) {
     this.app.use(...args);
