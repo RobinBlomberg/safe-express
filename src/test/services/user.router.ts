@@ -1,4 +1,5 @@
-import { SafeRouter, status } from '../..';
+import { status } from '@robinblomberg/http-status';
+import { SafeRouter } from '../..';
 import { RequestError } from '../../request-error';
 import { userApi } from '../apis';
 import { ErrorCode } from '../enums';
@@ -24,7 +25,7 @@ router.get('/:id', (req) => {
   if (!user) {
     throw new RequestError({
       code: ErrorCode.USER_NOT_FOUND,
-      status: status.NOT_FOUND,
+      status: status.clientError.NOT_FOUND,
     });
   }
 

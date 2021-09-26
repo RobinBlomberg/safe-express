@@ -1,3 +1,4 @@
+import { status, statusText } from '@robinblomberg/http-status';
 import express from 'express';
 import { RouteParameters } from 'express-serve-static-core';
 import {
@@ -11,7 +12,6 @@ import {
   RequestHandler,
   ResponseBodyOf,
   RouterApi,
-  status,
 } from '.';
 
 export class SafeRouter<TApi extends RouterApi> {
@@ -40,7 +40,7 @@ export class SafeRouter<TApi extends RouterApi> {
       if (schema) {
         const result = schema.safeParse(req.body);
         if (!result.success) {
-          res.status(status.BAD_REQUEST);
+          res.status(status.clientError.BAD_REQUEST);
           res.json(result.error.errors);
           return;
         }
@@ -62,12 +62,12 @@ export class SafeRouter<TApi extends RouterApi> {
           error instanceof SyntaxError &&
           (error as BodyParserError).type === 'entity.parse.failed'
         ) {
-          res.status(status.BAD_REQUEST);
+          res.status(status.clientError.BAD_REQUEST);
           res.json('Expected request body to be an object or array.');
         } else {
           console.error(error);
-          res.status(status.INTERNAL_SERVER_ERROR);
-          res.json(status[status.INTERNAL_SERVER_ERROR]);
+          res.status(status.serverError.INTERNAL_SERVER_ERROR);
+          res.json(statusText[status.serverError.INTERNAL_SERVER_ERROR]);
         }
       }
     });

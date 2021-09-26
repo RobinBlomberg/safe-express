@@ -19,6 +19,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _SafeRouter_instances, _SafeRouter_on;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SafeRouter = void 0;
+const http_status_1 = require("@robinblomberg/http-status");
 const express_1 = __importDefault(require("express"));
 const _1 = require(".");
 class SafeRouter {
@@ -57,7 +58,7 @@ _SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(
         if (schema) {
             const result = schema.safeParse(req.body);
             if (!result.success) {
-                res.status(_1.status.BAD_REQUEST);
+                res.status(http_status_1.status.clientError.BAD_REQUEST);
                 res.json(result.error.errors);
                 return;
             }
@@ -75,13 +76,13 @@ _SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(
             }
             else if (error instanceof SyntaxError &&
                 error.type === 'entity.parse.failed') {
-                res.status(_1.status.BAD_REQUEST);
+                res.status(http_status_1.status.clientError.BAD_REQUEST);
                 res.json('Expected request body to be an object or array.');
             }
             else {
                 console.error(error);
-                res.status(_1.status.INTERNAL_SERVER_ERROR);
-                res.json(_1.status[_1.status.INTERNAL_SERVER_ERROR]);
+                res.status(http_status_1.status.serverError.INTERNAL_SERVER_ERROR);
+                res.json(http_status_1.statusText[http_status_1.status.serverError.INTERNAL_SERVER_ERROR]);
             }
         }
     }));

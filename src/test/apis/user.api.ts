@@ -1,5 +1,5 @@
 import { RouterApi } from '../..';
-import { $newUser, $user } from '../services/user.schema';
+import { $newUser, $user } from '../services';
 import { $array } from '../utils';
 
 export type UserApi = RouterApi<typeof userApi>;
