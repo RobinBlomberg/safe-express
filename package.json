@@ -1,6 +1,17 @@
 {
+  "name": "@robinblomberg/safe-express",
+  "version": "0.1.0",
+  "author": "Robin Blomberg",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobinBlomberg/safe-express.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RobinBlomberg/safe-express/issues"
+  },
+  "homepage": "https://github.com/RobinBlomberg/safe-express#readme",
   "scripts": {
     "lint": "eslint ./src",
     "test": "tsc-watch --project ./tsconfig.json --onSuccess \"node --enable-source-maps ./dist/test/index.test.js\""
