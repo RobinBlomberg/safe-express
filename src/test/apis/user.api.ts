@@ -1,13 +1,13 @@
-import { z as $ } from 'zod';
 import { RouterApi } from '../..';
 import { $newUser, $user } from '../services/user.schema';
+import { $array } from '../utils';
 
 export type UserApi = RouterApi<typeof userApi>;
 
 export const userApi = {
   '/': {
     get: {
-      responseBody: $.array($user),
+      responseBody: $array($user),
     },
     post: {
       requestBody: $newUser,

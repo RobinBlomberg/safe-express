@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import expressCore from 'express-serve-static-core';
-import zod from 'zod';
+import { z } from 'zod';
 
 export type Api<
   TApi extends {
@@ -26,8 +26,8 @@ export type BodyParserError = SyntaxError & {
 };
 
 export type EndpointDefinition = {
-  requestBody?: zod.ZodObject<zod.ZodRawShape> | zod.ZodArray<zod.ZodTypeAny>;
-  responseBody: zod.ZodTypeAny;
+  requestBody?: ValidRequestBody;
+  responseBody: z.ZodTypeAny;
 };
 
 export type ErrorRequestHandler = (
@@ -85,13 +85,8 @@ export type RequestBodyOf<
   TApi extends Api,
   TMethod extends Method,
   TRoutePath extends Path,
-> = RouterValueOf<
-  TApi,
-  TMethod,
-  TRoutePath,
-  'requestBody'
-> extends zod.ZodTypeAny
-  ? zod.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>>
+> = RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'> extends z.ZodTypeAny
+  ? z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>>
   : undefined;
 
 export type RequestErrorOptions<TCode extends string> = {
@@ -119,7 +114,7 @@ export type ResponseBodyOf<
   TApi extends Api,
   TMethod extends Method,
   TRoutePath extends Path,
-> = zod.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
+> = z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
 
 export type RouteDefinition = {
   [K in Method]?: EndpointDefinition;
@@ -149,6 +144,17 @@ export type RouterValueOf<
 >[TKey];
 
 export type TransformFunction = (string: string) => string;
+
+/**
+ * Note: body-parser requires the first request body JSON character to be "{" or "[".
+ */
+export type ValidRequestBody =
+  | z.ZodArray<z.ZodTypeAny>
+  | z.ZodIntersection<ValidRequestBody, ValidRequestBody>
+  | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
+  | z.ZodRecord
+  | z.ZodTuple
+  | z.ZodUnion<[ValidRequestBody, ...ValidRequestBody[]]>;
 
 export type ValueOf<
   T extends Record<string, unknown>,

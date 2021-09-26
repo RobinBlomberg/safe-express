@@ -1,14 +1,14 @@
-import { z as $ } from 'zod';
+import { $email, $infer, $nestring, $object, $uint } from '../utils/schema';
 
-export type User = $.infer<typeof $user>;
-export const $user = $.object({
-  email: $.string().email(),
-  id: $.number().int(),
-  name: $.string().nonempty(),
-}).strict();
+export type User = $infer<typeof $user>;
+export const $user = $object({
+  email: $email,
+  id: $uint,
+  name: $nestring,
+});
 
-export type NewUser = $.infer<typeof $newUser>;
-export const $newUser = $.object({
-  email: $.string().email(),
-  name: $.string().nonempty(),
+export type NewUser = $infer<typeof $newUser>;
+export const $newUser = $object({
+  email: $email,
+  name: $nestring,
 });

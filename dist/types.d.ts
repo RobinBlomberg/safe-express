@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import expressCore from 'express-serve-static-core';
-import zod from 'zod';
+import { z } from 'zod';
 export declare type Api<TApi extends {
     [KPath in Path]?: RouterApi;
 } = {
@@ -20,8 +20,8 @@ export declare type BodyParserError = SyntaxError & {
     type?: string;
 };
 export declare type EndpointDefinition = {
-    requestBody?: zod.ZodObject<zod.ZodRawShape> | zod.ZodArray<zod.ZodTypeAny>;
-    responseBody: zod.ZodTypeAny;
+    requestBody?: ValidRequestBody;
+    responseBody: z.ZodTypeAny;
 };
 export declare type ErrorRequestHandler = (error: Error, req: Request<Api, Method, Path>, res: Response<Api, Method, Path>, next: express.NextFunction) => Promisable<void>;
 export declare type Locals = {
@@ -36,14 +36,14 @@ export declare type Query = {
     [K in string]?: string | string[] | Query | Query[];
 };
 export declare type Request<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = express.Request<expressCore.RouteParameters<TRoutePath>, ResponseBodyOf<TApi, TMethod, TRoutePath>, RequestBodyOf<TApi, TMethod, TRoutePath>, Query, Locals>;
-export declare type RequestBodyOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'> extends zod.ZodTypeAny ? zod.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>> : undefined;
+export declare type RequestBodyOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'> extends z.ZodTypeAny ? z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>> : undefined;
 export declare type RequestErrorOptions<TCode extends string> = {
     code: TCode;
     status: number;
 };
 export declare type RequestHandler<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = (req: Request<TApi, TMethod, TRoutePath>, res: Response<TApi, TMethod, TRoutePath>, next: express.NextFunction) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
 export declare type Response<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = express.Response<ResponseBodyOf<TApi, TMethod, TRoutePath>, Locals>;
-export declare type ResponseBodyOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = zod.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
+export declare type ResponseBodyOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
 export declare type RouteDefinition = {
     [K in Method]?: EndpointDefinition;
 };
@@ -54,4 +54,8 @@ export declare type RouterApi<TRouterApi extends {
 }> = TRouterApi;
 export declare type RouterValueOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path, TKey extends keyof ValueOf<ValueOf<TApi, TRoutePath, RouteDefinition>, TMethod, EndpointDefinition>> = ValueOf<ValueOf<TApi, TRoutePath, RouteDefinition>, TMethod, EndpointDefinition>[TKey];
 export declare type TransformFunction = (string: string) => string;
+/**
+ * Note: body-parser requires the first request body JSON character to be "{" or "[".
+ */
+export declare type ValidRequestBody = z.ZodArray<z.ZodTypeAny> | z.ZodIntersection<ValidRequestBody, ValidRequestBody> | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'> | z.ZodRecord | z.ZodTuple | z.ZodUnion<[ValidRequestBody, ...ValidRequestBody[]]>;
 export declare type ValueOf<T extends Record<string, unknown>, K extends keyof T, V> = MemberOf<T[K], V>;
