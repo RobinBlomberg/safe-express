@@ -1,5 +1,5 @@
+import { Dispatcher } from '@robinblomberg/dispatcher';
 import chalk from 'chalk';
-import { Dispatcher } from '../utils/dispatcher';
 import { logger } from '../utils/logger';
 import { NewUser, User } from './user.schema';
 

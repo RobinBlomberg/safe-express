@@ -1,3 +1,3 @@
-import { createLogger } from './create-logger';
+import { createLogger } from '@robinblomberg/logger';
 
 export const logger = createLogger(['db', 'http']);

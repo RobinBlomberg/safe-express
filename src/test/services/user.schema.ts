@@ -1,4 +1,4 @@
-import { $email, $infer, $nestring, $object, $uint } from '../utils/schema';
+import { $email, $infer, $nestring, $object, $uint } from '@robinblomberg/zod';
 
 export type User = $infer<typeof $user>;
 export const $user = $object({

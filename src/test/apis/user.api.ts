@@ -1,5 +1,5 @@
+import { $array } from '@robinblomberg/zod';
 import { $newUser, $user } from '../services/user.schema';
-import { $array } from '../utils/schema';
 
 export const userApi = {
   '/': {
