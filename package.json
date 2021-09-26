@@ -30,10 +30,6 @@
     "extends": [
       "@robinblomberg/robinblomberg",
       "@robinblomberg/prettier"
-    ],
-    "ignorePatterns": [
-      "**/.*/**",
-      "**/node_modules/**"
     ]
   },
   "prettier": "@robinblomberg/prettier-config"
