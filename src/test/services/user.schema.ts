@@ -8,6 +8,7 @@ export const $user = $.object({
 }).strict();
 
 export type NewUser = $.infer<typeof $newUser>;
-export const $newUser = $user.omit({
-  id: true,
+export const $newUser = $.object({
+  email: $.string().email(),
+  name: $.string().nonempty(),
 });

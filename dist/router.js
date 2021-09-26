@@ -22,10 +22,9 @@ exports.SafeRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const _1 = require(".");
 class SafeRouter {
-    constructor(api, path) {
+    constructor(api) {
         _SafeRouter_instances.add(this);
         this.api = api;
-        this.path = path;
         this.router = express_1.default.Router();
     }
     delete(path, requestHandler) {
@@ -52,42 +51,37 @@ class SafeRouter {
 }
 exports.SafeRouter = SafeRouter;
 _SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(method, path, requestHandler) {
-    this.router[method](path, (request, response, next) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c;
-        const schema = (_c = (_b = (_a = this.api[this.path]) === null || _a === void 0 ? void 0 : _a[path]) === null || _b === void 0 ? void 0 : _b[method]) === null || _c === void 0 ? void 0 : _c.requestBody;
+    this.router[method](path, (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
+        const schema = (_b = (_a = this.api[path]) === null || _a === void 0 ? void 0 : _a[method]) === null || _b === void 0 ? void 0 : _b.requestBody;
         if (schema) {
-            const result = schema.safeParse(request.body);
+            const result = schema.safeParse(req.body);
             if (!result.success) {
-                response.status(_1.status.BAD_REQUEST);
-                response.json(result.error.errors);
+                res.status(_1.status.BAD_REQUEST);
+                res.json(result.error.errors);
                 return;
             }
         }
         try {
-            const responseBody = yield Promise.resolve(requestHandler({
-                api: this.api,
-                next,
-                request,
-                response,
-            }));
-            response.json(responseBody !== null && responseBody !== void 0 ? responseBody : null);
+            const responseBody = yield Promise.resolve(requestHandler(req, res, next));
+            res.json(responseBody !== null && responseBody !== void 0 ? responseBody : null);
         }
         catch (error) {
             if (error instanceof _1.RequestError) {
-                response.status(error.status);
-                response.json({
+                res.status(error.status);
+                res.json({
                     code: error.code,
                 });
             }
             else if (error instanceof SyntaxError &&
                 error.type === 'entity.parse.failed') {
-                response.status(_1.status.BAD_REQUEST);
-                response.json('Expected request body to be an object or array.');
+                res.status(_1.status.BAD_REQUEST);
+                res.json('Expected request body to be an object or array.');
             }
             else {
                 console.error(error);
-                response.status(_1.status.INTERNAL_SERVER_ERROR);
-                response.json(_1.status[_1.status.INTERNAL_SERVER_ERROR]);
+                res.status(_1.status.INTERNAL_SERVER_ERROR);
+                res.json(_1.status[_1.status.INTERNAL_SERVER_ERROR]);
             }
         }
     }));

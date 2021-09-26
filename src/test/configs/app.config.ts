@@ -1,5 +1,5 @@
 import { AppOptions } from '../..';
-import { TestApi, testApi } from '../apis';
+import { TestApi, testApi } from '../apis/api';
 import { logger } from '../utils';
 
 export const appConfig: AppOptions<TestApi> = {

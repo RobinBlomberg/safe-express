@@ -3,9 +3,13 @@ import express from 'express';
 import expressCore from 'express-serve-static-core';
 import zod from 'zod';
 
-export type Api = {
-  [KPath in Path]?: RouterApi;
-};
+export type Api<
+  TApi extends {
+    [KPath in Path]?: RouterApi;
+  } = {
+    [KPath in Path]?: RouterApi;
+  },
+> = TApi;
 
 export type AppOptions<TApi extends Api> = {
   api: TApi;
@@ -26,12 +30,12 @@ export type EndpointDefinition = {
   responseBody: zod.ZodTypeAny;
 };
 
-export type ErrorRequestHandler = (payload: {
-  error: Error;
-  next: express.NextFunction;
-  request: Request<Api, Path, Path, Method>;
-  response: Response<Api, Path, Path, Method>;
-}) => Promisable<void>;
+export type ErrorRequestHandler = (
+  error: Error,
+  req: Request<Api, Method, Path>,
+  res: Response<Api, Method, Path>,
+  next: express.NextFunction,
+) => Promisable<void>;
 
 export type Locals = {
   [K in never]: never;
@@ -57,7 +61,7 @@ export type MethodUpperCase =
 
 export type MemberOf<T, U> = T extends U ? T : never;
 
-export type Path = `/${string}` | '';
+export type Path = `/${string}`;
 
 export type Promisable<T> = T | Promise<T>;
 
@@ -67,32 +71,27 @@ export type Query = {
 
 export type Request<
   TApi extends Api,
-  TRouterPath extends Path,
-  TRoutePath extends Path,
   TMethod extends Method,
+  TRoutePath extends Path,
 > = express.Request<
   expressCore.RouteParameters<TRoutePath>,
-  ResponseBodyOf<TApi, TRouterPath, TRoutePath, TMethod>,
-  RequestBodyOf<TApi, TRouterPath, TRoutePath, TMethod>,
+  ResponseBodyOf<TApi, TMethod, TRoutePath>,
+  RequestBodyOf<TApi, TMethod, TRoutePath>,
   Query,
   Locals
 >;
 
 export type RequestBodyOf<
   TApi extends Api,
-  TRouterPath extends Path,
-  TRoutePath extends Path,
   TMethod extends Method,
+  TRoutePath extends Path,
 > = RouterValueOf<
   TApi,
-  TRouterPath,
-  TRoutePath,
   TMethod,
+  TRoutePath,
   'requestBody'
 > extends zod.ZodTypeAny
-  ? zod.TypeOf<
-      RouterValueOf<TApi, TRouterPath, TRoutePath, TMethod, 'requestBody'>
-    >
+  ? zod.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>>
   : undefined;
 
 export type RequestErrorOptions<TCode extends string> = {
@@ -102,55 +101,49 @@ export type RequestErrorOptions<TCode extends string> = {
 
 export type RequestHandler<
   TApi extends Api,
-  TRouterPath extends Path,
-  TRoutePath extends Path,
   TMethod extends Method,
-> = (payload: {
-  api: TApi;
-  next: express.NextFunction;
-  request: Request<TApi, TRouterPath, TRoutePath, TMethod>;
-  response: Response<TApi, TRouterPath, TRoutePath, TMethod>;
-}) => Promisable<ResponseBodyOf<TApi, TRouterPath, TRoutePath, TMethod>>;
+  TRoutePath extends Path,
+> = (
+  req: Request<TApi, TMethod, TRoutePath>,
+  res: Response<TApi, TMethod, TRoutePath>,
+  next: express.NextFunction,
+) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
 
 export type Response<
   TApi extends Api,
-  TRouterPath extends Path,
-  TRoutePath extends Path,
   TMethod extends Method,
-> = express.Response<
-  ResponseBodyOf<TApi, TRouterPath, TRoutePath, TMethod>,
-  Locals
->;
+  TRoutePath extends Path,
+> = express.Response<ResponseBodyOf<TApi, TMethod, TRoutePath>, Locals>;
 
 export type ResponseBodyOf<
   TApi extends Api,
-  TRouterPath extends Path,
-  TRoutePath extends Path,
   TMethod extends Method,
-> = zod.TypeOf<
-  RouterValueOf<TApi, TRouterPath, TRoutePath, TMethod, 'responseBody'>
->;
+  TRoutePath extends Path,
+> = zod.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
 
 export type RouteDefinition = {
   [K in Method]?: EndpointDefinition;
 };
 
-export type RouterApi = {
-  [KPath in Path]?: RouteDefinition;
-};
+export type RouterApi<
+  TRouterApi extends {
+    [KPath in Path]?: RouteDefinition;
+  } = {
+    [KPath in Path]?: RouteDefinition;
+  },
+> = TRouterApi;
 
 export type RouterValueOf<
   TApi extends Api,
-  TRouterPath extends Path,
-  TRoutePath extends Path,
   TMethod extends Method,
+  TRoutePath extends Path,
   TKey extends keyof ValueOf<
-    ValueOf<ValueOf<TApi, TRouterPath, RouterApi>, TRoutePath, RouteDefinition>,
+    ValueOf<TApi, TRoutePath, RouteDefinition>,
     TMethod,
     EndpointDefinition
   >,
 > = ValueOf<
-  ValueOf<ValueOf<TApi, TRouterPath, RouterApi>, TRoutePath, RouteDefinition>,
+  ValueOf<TApi, TRoutePath, RouteDefinition>,
   TMethod,
   EndpointDefinition
 >[TKey];

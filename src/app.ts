@@ -12,11 +12,9 @@ import { logger } from './logger';
 import { Api, Path } from './types';
 
 export class SafeApp<TApi extends Api> {
-  readonly #api: TApi;
   readonly #app: express.Express;
 
   constructor(options: AppOptions<TApi>) {
-    this.#api = options.api;
     this.#app = express();
 
     if (options.log) {
@@ -31,10 +29,6 @@ export class SafeApp<TApi extends Api> {
     this.#app.use(cors(options.cors));
   }
 
-  createRouter<TRouterPath extends Path & keyof TApi>(path: TRouterPath) {
-    return new SafeRouter<TApi, TRouterPath>(this.#api, path);
-  }
-
   listen(port: number) {
     this.#app.listen(port);
 
@@ -42,42 +36,22 @@ export class SafeApp<TApi extends Api> {
   }
 
   useErrorRequestHandler(errorRequestHandler: ErrorRequestHandler) {
-    const handler: express.ErrorRequestHandler = (
-      error,
-      request,
-      response,
-      next,
-    ) => {
-      return errorRequestHandler({
-        error,
-        next,
-        request,
-        response,
-      });
-    };
-    this.#app.use(handler);
+    this.#app.use(errorRequestHandler);
 
     return this;
   }
 
-  useRequestHandler(requestHandler: RequestHandler<Api, Path, Path, Method>) {
-    const handler: express.RequestHandler = (request, response, next) => {
-      return requestHandler({
-        api: this.#api,
-        next,
-        request,
-        response,
-      });
-    };
-    this.#app.use(handler);
+  useRequestHandler(requestHandler: RequestHandler<Api, Method, Path>) {
+    this.#app.use(requestHandler);
 
     return this;
   }
 
-  useRouter<TRouterPath extends Path & keyof TApi>(
-    router: SafeRouter<TApi, TRouterPath>,
+  useRouter<TRouterPath extends keyof TApi & string>(
+    path: TRouterPath,
+    router: SafeRouter<TApi[TRouterPath]>,
   ) {
-    this.#app.use(router.path, router.router);
+    this.#app.use(path, router.router);
 
     return this;
   }

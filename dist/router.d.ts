@@ -1,16 +1,15 @@
 import express from 'express';
-import { Api, Path, RequestHandler } from './types';
-export declare class SafeRouter<TApi extends Api, TRouterPath extends Path & keyof TApi> {
+import { Path, RequestHandler, RouterApi } from '.';
+export declare class SafeRouter<TApi extends RouterApi> {
     #private;
     readonly api: TApi;
-    readonly path: TRouterPath;
     readonly router: express.Router;
-    constructor(api: TApi, path: TRouterPath);
-    delete<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'delete'>): void;
-    get<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'get'>): void;
-    head<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'head'>): void;
-    options<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'options'>): void;
-    patch<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'patch'>): void;
-    post<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'post'>): void;
-    put<TRoutePath extends Path & keyof TApi[TRouterPath]>(path: TRoutePath, requestHandler: RequestHandler<TApi, TRouterPath, TRoutePath, 'put'>): void;
+    constructor(api: TApi);
+    delete<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'delete', TRoutePath>): void;
+    get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'get', TRoutePath>): void;
+    head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'head', TRoutePath>): void;
+    options<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'options', TRoutePath>): void;
+    patch<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'patch', TRoutePath>): void;
+    post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'post', TRoutePath>): void;
+    put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: RequestHandler<TApi, 'put', TRoutePath>): void;
 }

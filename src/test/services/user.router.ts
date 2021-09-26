@@ -1,25 +1,24 @@
-import { status } from '../..';
+import { SafeRouter, status } from '../..';
 import { RequestError } from '../../request-error';
-import { safe } from '../../safe';
-import { testApi } from '../apis';
+import { userApi } from '../apis';
 import { ErrorCode } from '../enums';
 import { db } from './user.db';
 
-const router = safe.createRouter(testApi, '/api/v1/user');
+const router = new SafeRouter(userApi);
 
-router.get('', () => {
+router.get('/', () => {
   return db.dispatch('GET_USERS');
 });
 
-router.post('', ({ request }) => {
+router.post('/', (req) => {
   return db.dispatch('CREATE_USER', {
-    user: request.body,
+    user: req.body,
   });
 });
 
-router.get('/:id', ({ request }) => {
+router.get('/:id', (req) => {
   const user = db.dispatch('GET_USER', {
-    id: request.params.id,
+    id: req.params.id,
   });
 
   if (!user) {

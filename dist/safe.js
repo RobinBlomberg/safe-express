@@ -6,8 +6,8 @@ exports.safe = {
     createApp: (options) => {
         return new _1.SafeApp(options);
     },
-    createRouter: (api, path) => {
-        return new _1.SafeRouter(api, path);
+    createRouter: (api) => {
+        return new _1.SafeRouter(api);
     },
 };
 //# sourceMappingURL=safe.js.map

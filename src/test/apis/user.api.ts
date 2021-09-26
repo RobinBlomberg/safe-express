@@ -2,8 +2,10 @@ import { z as $ } from 'zod';
 import { RouterApi } from '../..';
 import { $newUser, $user } from '../services/user.schema';
 
-const api = {
-  '': {
+export type UserApi = RouterApi<typeof userApi>;
+
+export const userApi = {
+  '/': {
     get: {
       responseBody: $.array($user),
     },
@@ -18,7 +20,3 @@ const api = {
     },
   },
 };
-
-export type UserApi = RouterApi & typeof api;
-
-export const userApi = api as UserApi;

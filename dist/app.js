@@ -13,19 +13,16 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _SafeApp_api, _SafeApp_app;
+var _SafeApp_app;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SafeApp = void 0;
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
-const _1 = require(".");
 const logger_1 = require("./logger");
 class SafeApp {
     constructor(options) {
-        _SafeApp_api.set(this, void 0);
         _SafeApp_app.set(this, void 0);
-        __classPrivateFieldSet(this, _SafeApp_api, options.api, "f");
         __classPrivateFieldSet(this, _SafeApp_app, (0, express_1.default)(), "f");
         if (options.log) {
             __classPrivateFieldGet(this, _SafeApp_app, "f").use((0, logger_1.logger)(typeof options.log === 'boolean' ? undefined : options.log));
@@ -35,42 +32,23 @@ class SafeApp {
         __classPrivateFieldGet(this, _SafeApp_app, "f").use((0, cookie_parser_1.default)());
         __classPrivateFieldGet(this, _SafeApp_app, "f").use((0, cors_1.default)(options.cors));
     }
-    createRouter(path) {
-        return new _1.SafeRouter(__classPrivateFieldGet(this, _SafeApp_api, "f"), path);
-    }
     listen(port) {
         __classPrivateFieldGet(this, _SafeApp_app, "f").listen(port);
         return this;
     }
     useErrorRequestHandler(errorRequestHandler) {
-        const handler = (error, request, response, next) => {
-            return errorRequestHandler({
-                error,
-                next,
-                request,
-                response,
-            });
-        };
-        __classPrivateFieldGet(this, _SafeApp_app, "f").use(handler);
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use(errorRequestHandler);
         return this;
     }
     useRequestHandler(requestHandler) {
-        const handler = (request, response, next) => {
-            return requestHandler({
-                api: __classPrivateFieldGet(this, _SafeApp_api, "f"),
-                next,
-                request,
-                response,
-            });
-        };
-        __classPrivateFieldGet(this, _SafeApp_app, "f").use(handler);
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use(requestHandler);
         return this;
     }
-    useRouter(router) {
-        __classPrivateFieldGet(this, _SafeApp_app, "f").use(router.path, router.router);
+    useRouter(path, router) {
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use(path, router.router);
         return this;
     }
 }
 exports.SafeApp = SafeApp;
-_SafeApp_api = new WeakMap(), _SafeApp_app = new WeakMap();
+_SafeApp_app = new WeakMap();
 //# sourceMappingURL=app.js.map
