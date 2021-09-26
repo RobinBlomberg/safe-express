@@ -2,6 +2,7 @@ import { status, statusText } from '@robinblomberg/http-status';
 import express from 'express';
 import { RouteParameters } from 'express-serve-static-core';
 import {
+  ApiRequestHandler,
   BodyParserError,
   Locals,
   Method,
@@ -26,8 +27,12 @@ export class SafeRouter<TApi extends RouterApi> {
   #on<TRoutePath extends Path & keyof TApi, TMethod extends Method>(
     method: TMethod,
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, TMethod, TRoutePath>,
+    args: any[],
   ) {
+    const middleware: RequestHandler[] = args[1] ? args[0] : [];
+    const requestHandler: ApiRequestHandler<TApi, TMethod, TRoutePath> =
+      args[1] ?? args[0];
+
     this.router[method]<
       TRoutePath,
       RouteParameters<TRoutePath>,
@@ -47,12 +52,15 @@ export class SafeRouter<TApi extends RouterApi> {
       }
 
       try {
-        const responseBody = await Promise.resolve(
-          requestHandler(req, res, next),
-        );
+        let responseBody;
+
+        for (const handler of [...middleware, requestHandler]) {
+          // eslint-disable-next-line no-await-in-loop
+          responseBody = await Promise.resolve(handler(req, res, next));
+        }
 
         res.json(responseBody ?? null);
-      } catch (error: unknown) {
+      } catch (error) {
         if (error instanceof RequestError) {
           res.status(error.status);
           res.json({
@@ -75,50 +83,101 @@ export class SafeRouter<TApi extends RouterApi> {
 
   delete<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'delete', TRoutePath>,
+    requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath>,
+  ): void;
+  delete<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath>,
+  ): void;
+  delete<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    ...args: any[]
   ) {
-    this.#on('delete', path, requestHandler);
+    this.#on('delete', path, args);
   }
 
   get<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'get', TRoutePath>,
-  ) {
-    this.#on('get', path, requestHandler);
+    requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath>,
+  ): void;
+  get<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath>,
+  ): void;
+  get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
+    this.#on('get', path, args);
   }
 
   head<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'head', TRoutePath>,
-  ) {
-    this.#on('head', path, requestHandler);
+    requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath>,
+  ): void;
+  head<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath>,
+  ): void;
+  head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
+    this.#on('head', path, args);
   }
 
   options<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'options', TRoutePath>,
+    requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath>,
+  ): void;
+  options<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath>,
+  ): void;
+  options<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    ...args: any[]
   ) {
-    this.#on('options', path, requestHandler);
+    this.#on('options', path, args);
   }
 
   patch<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'patch', TRoutePath>,
+    requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath>,
+  ): void;
+  patch<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath>,
+  ): void;
+  patch<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    ...args: any[]
   ) {
-    this.#on('patch', path, requestHandler);
+    this.#on('patch', path, args);
   }
 
   post<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'post', TRoutePath>,
-  ) {
-    this.#on('post', path, requestHandler);
+    requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath>,
+  ): void;
+  post<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath>,
+  ): void;
+  post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
+    this.#on('post', path, args);
   }
 
   put<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: RequestHandler<TApi, 'put', TRoutePath>,
-  ) {
-    this.#on('put', path, requestHandler);
+    requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath>,
+  ): void;
+  put<TRoutePath extends Path & keyof TApi>(
+    path: TRoutePath,
+    middleware: RequestHandler[],
+    requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath>,
+  ): void;
+  put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
+    this.#on('put', path, args);
   }
 }

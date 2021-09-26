@@ -3,6 +3,8 @@ import express from 'express';
 import expressCore from 'express-serve-static-core';
 import { z } from 'zod';
 
+export type { CookieOptions } from 'express';
+
 export type Api<
   TApi extends {
     [KPath in Path]?: RouterApi;
@@ -10,6 +12,16 @@ export type Api<
     [KPath in Path]?: RouterApi;
   },
 > = TApi;
+
+export type ApiRequestHandler<
+  TApi extends Api = Api,
+  TMethod extends Method = Method,
+  TRoutePath extends Path = Path,
+> = (
+  req: Request<TApi, TMethod, TRoutePath>,
+  res: Response<TApi, TMethod, TRoutePath>,
+  next: express.NextFunction,
+) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
 
 export type AppOptions<TApi extends Api> = {
   api: TApi;
@@ -61,6 +73,10 @@ export type MethodUpperCase =
 
 export type MemberOf<T, U> = T extends U ? T : never;
 
+export type Params = {
+  [K in string]?: string;
+};
+
 export type Path = `/${string}`;
 
 export type Promisable<T> = T | Promise<T>;
@@ -95,14 +111,16 @@ export type RequestErrorOptions<TCode extends string> = {
 };
 
 export type RequestHandler<
-  TApi extends Api,
-  TMethod extends Method,
-  TRoutePath extends Path,
+  TParams extends Params = Params,
+  TResponseBody = unknown,
+  TRequestBody = unknown,
+  TQuery extends Query = Query,
+  TLocals extends Locals = Locals,
 > = (
-  req: Request<TApi, TMethod, TRoutePath>,
-  res: Response<TApi, TMethod, TRoutePath>,
+  req: express.Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals>,
+  res: express.Response<TResponseBody, TLocals>,
   next: express.NextFunction,
-) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
+) => Promisable<unknown>;
 
 export type Response<
   TApi extends Api,

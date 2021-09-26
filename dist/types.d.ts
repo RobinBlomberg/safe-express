@@ -2,11 +2,13 @@ import cors from 'cors';
 import express from 'express';
 import expressCore from 'express-serve-static-core';
 import { z } from 'zod';
+export type { CookieOptions } from 'express';
 export declare type Api<TApi extends {
     [KPath in Path]?: RouterApi;
 } = {
     [KPath in Path]?: RouterApi;
 }> = TApi;
+export declare type ApiRequestHandler<TApi extends Api = Api, TMethod extends Method = Method, TRoutePath extends Path = Path> = (req: Request<TApi, TMethod, TRoutePath>, res: Response<TApi, TMethod, TRoutePath>, next: express.NextFunction) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
 export declare type AppOptions<TApi extends Api> = {
     api: TApi;
     cors?: cors.CorsOptions;
@@ -30,6 +32,9 @@ export declare type Locals = {
 export declare type Method = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put';
 export declare type MethodUpperCase = 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT';
 export declare type MemberOf<T, U> = T extends U ? T : never;
+export declare type Params = {
+    [K in string]?: string;
+};
 export declare type Path = `/${string}`;
 export declare type Promisable<T> = T | Promise<T>;
 export declare type Query = {
@@ -41,7 +46,7 @@ export declare type RequestErrorOptions<TCode extends string> = {
     code: TCode;
     status: number;
 };
-export declare type RequestHandler<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = (req: Request<TApi, TMethod, TRoutePath>, res: Response<TApi, TMethod, TRoutePath>, next: express.NextFunction) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
+export declare type RequestHandler<TParams extends Params = Params, TResponseBody = unknown, TRequestBody = unknown, TQuery extends Query = Query, TLocals extends Locals = Locals> = (req: express.Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals>, res: express.Response<TResponseBody, TLocals>, next: express.NextFunction) => Promisable<unknown>;
 export declare type Response<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = express.Response<ResponseBodyOf<TApi, TMethod, TRoutePath>, Locals>;
 export declare type ResponseBodyOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
 export declare type RouteDefinition = {

@@ -28,33 +28,36 @@ class SafeRouter {
         this.api = api;
         this.router = express_1.default.Router();
     }
-    delete(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'delete', path, requestHandler);
+    delete(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'delete', path, args);
     }
-    get(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'get', path, requestHandler);
+    get(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'get', path, args);
     }
-    head(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'head', path, requestHandler);
+    head(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'head', path, args);
     }
-    options(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'options', path, requestHandler);
+    options(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'options', path, args);
     }
-    patch(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'patch', path, requestHandler);
+    patch(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'patch', path, args);
     }
-    post(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'post', path, requestHandler);
+    post(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'post', path, args);
     }
-    put(path, requestHandler) {
-        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'put', path, requestHandler);
+    put(path, ...args) {
+        __classPrivateFieldGet(this, _SafeRouter_instances, "m", _SafeRouter_on).call(this, 'put', path, args);
     }
 }
 exports.SafeRouter = SafeRouter;
-_SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(method, path, requestHandler) {
+_SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(method, path, args) {
+    var _a;
+    const middleware = args[1] ? args[0] : [];
+    const requestHandler = (_a = args[1]) !== null && _a !== void 0 ? _a : args[0];
     this.router[method](path, (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b;
-        const schema = (_b = (_a = this.api[path]) === null || _a === void 0 ? void 0 : _a[method]) === null || _b === void 0 ? void 0 : _b.requestBody;
+        var _b, _c;
+        const schema = (_c = (_b = this.api[path]) === null || _b === void 0 ? void 0 : _b[method]) === null || _c === void 0 ? void 0 : _c.requestBody;
         if (schema) {
             const result = schema.safeParse(req.body);
             if (!result.success) {
@@ -64,7 +67,11 @@ _SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(
             }
         }
         try {
-            const responseBody = yield Promise.resolve(requestHandler(req, res, next));
+            let responseBody;
+            for (const handler of [...middleware, requestHandler]) {
+                // eslint-disable-next-line no-await-in-loop
+                responseBody = yield Promise.resolve(handler(req, res, next));
+            }
             res.json(responseBody !== null && responseBody !== void 0 ? responseBody : null);
         }
         catch (error) {

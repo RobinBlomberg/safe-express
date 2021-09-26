@@ -1,15 +1,9 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import {
-  AppOptions,
-  ErrorRequestHandler,
-  Method,
-  RequestHandler,
-  SafeRouter,
-} from '.';
+import { AppOptions, SafeRouter } from '.';
 import { logger } from './internal/logger';
-import { Api, Path } from './types';
+import { Api } from './types';
 
 export class SafeApp<TApi extends Api> {
   readonly #app: express.Express;
@@ -18,30 +12,31 @@ export class SafeApp<TApi extends Api> {
     this.#app = express();
 
     if (options.log) {
-      this.#app.use(
+      this.useMiddleware(
         logger(typeof options.log === 'boolean' ? undefined : options.log),
       );
     }
 
-    this.#app.use(express.json());
-    this.#app.use(express.urlencoded({ extended: true }));
-    this.#app.use(cookieParser());
-    this.#app.use(cors(options.cors));
+    this.useMiddleware(express.json());
+    this.useMiddleware(express.urlencoded({ extended: true }));
+    this.useMiddleware(cookieParser());
+    this.useMiddleware(cors(options.cors));
   }
 
-  listen(port: number) {
+  listen(port: number | string, callback?: () => void) {
     this.#app.listen(port);
+    callback?.();
 
     return this;
   }
 
-  useErrorRequestHandler(errorRequestHandler: ErrorRequestHandler) {
+  useErrorRequestHandler(errorRequestHandler: express.ErrorRequestHandler) {
     this.#app.use(errorRequestHandler);
 
     return this;
   }
 
-  useRequestHandler(requestHandler: RequestHandler<Api, Method, Path>) {
+  useMiddleware(requestHandler: express.RequestHandler) {
     this.#app.use(requestHandler);
 
     return this;
