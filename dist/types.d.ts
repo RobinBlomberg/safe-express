@@ -57,5 +57,6 @@ export declare type TransformFunction = (string: string) => string;
 /**
  * Note: body-parser requires the first request body JSON character to be "{" or "[".
  */
-export declare type ValidRequestBody = z.ZodArray<z.ZodTypeAny> | z.ZodIntersection<ValidRequestBody, ValidRequestBody> | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'> | z.ZodRecord | z.ZodTuple | z.ZodUnion<[ValidRequestBody, ...ValidRequestBody[]]>;
+export declare type ValidRequestBody = ValidRequestBodyPrimitive | z.ZodEffects<ValidRequestBodyPrimitive>;
+export declare type ValidRequestBodyPrimitive = z.ZodArray<z.ZodTypeAny> | z.ZodIntersection<ValidRequestBody, ValidRequestBody> | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'> | z.ZodRecord | z.ZodTuple | z.ZodUnion<[ValidRequestBody, ...ValidRequestBody[]]>;
 export declare type ValueOf<T extends Record<string, unknown>, K extends keyof T, V> = MemberOf<T[K], V>;

@@ -149,6 +149,10 @@ export type TransformFunction = (string: string) => string;
  * Note: body-parser requires the first request body JSON character to be "{" or "[".
  */
 export type ValidRequestBody =
+  | ValidRequestBodyPrimitive
+  | z.ZodEffects<ValidRequestBodyPrimitive>;
+
+export type ValidRequestBodyPrimitive =
   | z.ZodArray<z.ZodTypeAny>
   | z.ZodIntersection<ValidRequestBody, ValidRequestBody>
   | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
