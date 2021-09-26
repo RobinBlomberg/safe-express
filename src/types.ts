@@ -1,81 +1,47 @@
-import { CorsOptions } from 'cors';
-import {
-  NextFunction as ExpressNextFunction,
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from 'express-serve-static-core';
+import cors from 'cors';
+import express from 'express';
+import expressCore from 'express-serve-static-core';
+import { z } from 'zod';
 
-export type Api = {
-  errors: ErrorResponseBody;
-  props: Props;
-  routes: Routes;
+export type Api<
+  TApi extends {
+    [KPath in Path]?: RouterApi;
+  } = {
+    [KPath in Path]?: RouterApi;
+  },
+> = TApi;
+
+export type AppOptions<TApi extends Api> = {
+  api: TApi;
+  cors?: cors.CorsOptions;
+  log?: TransformFunction | boolean;
 };
 
-export type ApiDefinition<TApi extends Api> = TApi;
-
-export type Controller<TApi extends Api, TEndpoint extends EndpointOf<TApi>> = (
-  requestHandler: SafeRequestHandler<TApi, TEndpoint>
-) => SafeRequestHandler<TApi, TEndpoint>;
-
-export type Endpoint = `${Method} ${Path}`;
-
-export type EndpointOf<TApi extends Api> = keyof TApi['routes'];
-
-export type ErrorResponseBody = {
-  [K in string]?: unknown;
+export type BodyParserError = SyntaxError & {
+  body?: string;
+  expose?: boolean;
+  status?: number;
+  statusCode?: number;
+  type?: string;
 };
 
-export type ErrorResponseBodyOf<TApi extends Api> = TApi['errors'];
+export type EndpointDefinition = {
+  requestBody?: ValidRequestBody;
+  responseBody: z.ZodTypeAny;
+};
+
+export type ErrorRequestHandler = (
+  error: Error,
+  req: Request<Api, Method, Path>,
+  res: Response<Api, Method, Path>,
+  next: express.NextFunction,
+) => Promisable<void>;
+
+export type Locals = {
+  [K in never]: never;
+};
 
 export type Method =
-  | 'DELETE'
-  | 'GET'
-  | 'HEAD'
-  | 'OPTIONS'
-  | 'PATCH'
-  | 'POST'
-  | 'PUT';
-
-export type Params = {
-  [K in string]?: string;
-};
-
-export type ParamsOf<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = RouteOf<TApi, TEndpoint>['params'];
-
-export type Path = `/${string}`;
-
-export type Props = {
-  [K in string]?: unknown;
-};
-
-export type PropsOf<TApi extends Api> = TApi['props'];
-
-export type Route = {
-  from?: unknown;
-  params?: Params;
-  query?: Query;
-  to: unknown;
-};
-
-export type RouteOf<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = Route & TApi['routes'][TEndpoint];
-
-export type Router<
-  TApi extends Api,
-  TBasePath extends Path
-> = SafeRequestHandler<TApi, EndpointOf<TApi>> & {
-  on: <TEndpoint extends `${Method} ${TBasePath}${string}` & EndpointOf<TApi>>(
-    endpoint: TEndpoint,
-    ...handlers: SafeRequestHandler<TApi, TEndpoint>[]
-  ) => void;
-};
-
-export type RouterFunctionName =
   | 'delete'
   | 'get'
   | 'head'
@@ -84,55 +50,114 @@ export type RouterFunctionName =
   | 'post'
   | 'put';
 
-export type Routes = {
-  [K in Endpoint]: Route;
-};
+export type MethodUpperCase =
+  | 'DELETE'
+  | 'GET'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'PATCH'
+  | 'POST'
+  | 'PUT';
+
+export type MemberOf<T, U> = T extends U ? T : never;
+
+export type Path = `/${string}`;
+
+export type Promisable<T> = T | Promise<T>;
 
 export type Query = {
   [K in string]?: string | string[] | Query | Query[];
 };
 
-export type QueryOf<
+export type Request<
   TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = RouteOf<TApi, TEndpoint>['query'];
+  TMethod extends Method,
+  TRoutePath extends Path,
+> = express.Request<
+  expressCore.RouteParameters<TRoutePath>,
+  ResponseBodyOf<TApi, TMethod, TRoutePath>,
+  RequestBodyOf<TApi, TMethod, TRoutePath>,
+  Query,
+  Locals
+>;
 
-export type SafeAppOptions = {
-  cors?: CorsOptions;
-  debug?: boolean;
+export type RequestBodyOf<
+  TApi extends Api,
+  TMethod extends Method,
+  TRoutePath extends Path,
+> = RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'> extends z.ZodTypeAny
+  ? z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>>
+  : undefined;
+
+export type RequestErrorOptions<TCode extends string> = {
+  code: TCode;
+  status: number;
 };
 
-export type SafeRequest<
+export type RequestHandler<
   TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = ExpressRequest<
-  ParamsOf<TApi, TEndpoint>,
-  SafeResponseBodyOf<TApi, TEndpoint>,
-  SafeRequestBodyOf<TApi, TEndpoint>,
-  QueryOf<TApi, TEndpoint>
-> &
-  PropsOf<TApi>;
-
-export type SafeRequestBodyOf<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = RouteOf<TApi, TEndpoint>['from'];
-
-export type SafeRequestHandler<
-  TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
+  TMethod extends Method,
+  TRoutePath extends Path,
 > = (
-  req: SafeRequest<TApi, TEndpoint>,
-  res: SafeResponse<TApi, TEndpoint>,
-  next: ExpressNextFunction
-) => void;
+  req: Request<TApi, TMethod, TRoutePath>,
+  res: Response<TApi, TMethod, TRoutePath>,
+  next: express.NextFunction,
+) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
 
-export type SafeResponse<
+export type Response<
   TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = ExpressResponse<SafeResponseBodyOf<TApi, TEndpoint>>;
+  TMethod extends Method,
+  TRoutePath extends Path,
+> = express.Response<ResponseBodyOf<TApi, TMethod, TRoutePath>, Locals>;
 
-export type SafeResponseBodyOf<
+export type ResponseBodyOf<
   TApi extends Api,
-  TEndpoint extends EndpointOf<TApi>
-> = RouteOf<TApi, TEndpoint>['to'] | ErrorResponseBodyOf<TApi>;
+  TMethod extends Method,
+  TRoutePath extends Path,
+> = z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
+
+export type RouteDefinition = {
+  [K in Method]?: EndpointDefinition;
+};
+
+export type RouterApi<
+  TRouterApi extends {
+    [KPath in Path]?: RouteDefinition;
+  } = {
+    [KPath in Path]?: RouteDefinition;
+  },
+> = TRouterApi;
+
+export type RouterValueOf<
+  TApi extends Api,
+  TMethod extends Method,
+  TRoutePath extends Path,
+  TKey extends keyof ValueOf<
+    ValueOf<TApi, TRoutePath, RouteDefinition>,
+    TMethod,
+    EndpointDefinition
+  >,
+> = ValueOf<
+  ValueOf<TApi, TRoutePath, RouteDefinition>,
+  TMethod,
+  EndpointDefinition
+>[TKey];
+
+export type TransformFunction = (string: string) => string;
+
+/**
+ * Note: body-parser requires the first request body JSON character to be "{" or "[".
+ */
+export type ValidRequestBody =
+  | z.ZodArray<z.ZodTypeAny>
+  | z.ZodIntersection<ValidRequestBody, ValidRequestBody>
+  | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
+  | z.ZodRecord
+  | z.ZodTuple
+  | z.ZodUnion<[ValidRequestBody, ...ValidRequestBody[]]>;
+
+export type ValueOf<
+  T extends Record<string, unknown>,
+  K extends keyof T,
+  V,
+> = MemberOf<T[K], V>;
