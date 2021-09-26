@@ -8,14 +8,14 @@ import {
 
 export class Dispatcher<TActions extends Actions> {
   readonly #actions: TActions;
-  readonly #afterAll: AfterDispatchFunction<TActions> | undefined;
-  readonly #beforeAll: BeforeDispatchFunction<TActions> | undefined;
+  readonly #afterAll: AfterDispatchFunction<TActions>[];
+  readonly #beforeAll: BeforeDispatchFunction<TActions>[];
   readonly #listeners: Listeners<TActions>;
 
   constructor(options: DispatcherOptions<TActions>) {
     this.#actions = options.actions;
-    this.#afterAll = options.after;
-    this.#beforeAll = options.before;
+    this.#afterAll = options.after ? [options.after] : [];
+    this.#beforeAll = options.before ? [options.before] : [];
     this.#listeners = {} as Listeners<TActions>;
 
     for (const action of Object.keys(this.#actions)) {
@@ -32,30 +32,55 @@ export class Dispatcher<TActions extends Actions> {
     action: keyof TActions & string,
     payloads: unknown[],
   ) {
-    this.#afterAll?.call({ error, result }, action, ...payloads);
+    const listeners = [...this.#afterAll, ...this.#listeners[action].after];
 
-    for (const listener of this.#listeners[action].after) {
+    for (const listener of listeners) {
       listener.call({ error, result }, action, ...payloads);
     }
   }
 
-  after(action: keyof TActions, listener: AfterDispatchFunction<TActions>) {
-    this.#listeners[action].after.push(listener);
+  after(listener: AfterDispatchFunction<TActions>): void;
+  after(
+    action: keyof TActions,
+    listener: AfterDispatchFunction<TActions>,
+  ): void;
+  after(
+    ...args:
+      | [AfterDispatchFunction<TActions>]
+      | [keyof TActions, AfterDispatchFunction<TActions>]
+  ) {
+    if (typeof args[0] === 'function') {
+      this.#afterAll.push(args[0]);
+    } else {
+      this.#listeners[args[0]].after.push(args[1]!);
+    }
   }
 
-  before(action: keyof TActions, listener: BeforeDispatchFunction<TActions>) {
-    this.#listeners[action].before.push(listener);
+  before(listener: BeforeDispatchFunction<TActions>): void;
+  before(
+    action: keyof TActions,
+    listener: BeforeDispatchFunction<TActions>,
+  ): void;
+  before(
+    ...args:
+      | [BeforeDispatchFunction<TActions>]
+      | [keyof TActions, BeforeDispatchFunction<TActions>]
+  ) {
+    if (typeof args[0] === 'function') {
+      this.#beforeAll.push(args[0]);
+    } else {
+      this.#listeners[args[0]].before.push(args[1]!);
+    }
   }
 
   dispatch<TAction extends keyof TActions & string>(
     action: TAction,
     ...payloads: Parameters<TActions[TAction]>
   ) {
+    const listeners = [...this.#beforeAll, ...this.#listeners[action].before];
     let result: ReturnType<TActions[TAction]>;
 
-    this.#beforeAll?.(action, ...payloads);
-
-    for (const listener of this.#listeners[action].before) {
+    for (const listener of listeners) {
       listener(action, ...payloads);
     }
 
