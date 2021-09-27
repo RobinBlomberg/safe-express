@@ -71,8 +71,9 @@ _SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(
         const req = originalReq;
         req.data = {};
         try {
+            const handlers = [...this.middleware, ...middleware, requestHandler];
             let responseBody;
-            for (const handler of [...middleware, requestHandler]) {
+            for (const handler of handlers) {
                 // eslint-disable-next-line no-await-in-loop
                 responseBody = yield Promise.resolve(handler(req, res, next));
             }

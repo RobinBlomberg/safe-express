@@ -1,4 +1,4 @@
-import { $array, $object, $string } from '@robinblomberg/zod';
+import { $array, $unknown } from '@robinblomberg/zod';
 import { $newUser, $user } from '../services/user.schema';
 
 export const userApi = {
@@ -18,10 +18,7 @@ export const userApi = {
   },
   '/me': {
     get: {
-      responseBody: $object({
-        id: $string.nullable(),
-        name: $string,
-      }),
+      responseBody: $unknown,
     },
   },
 };

@@ -31,7 +31,7 @@ export type ApiRequestHandler<
   TApi extends Api = Api,
   TMethod extends Method = Method,
   TRoutePath extends Path = Path,
-  TData extends RequestData = RequestData,
+  TData extends RequestData = {},
 > = (
   req: ApiRequest<TApi, TMethod, TRoutePath, TData>,
   res: Response<TApi, TMethod, TRoutePath>,
@@ -88,9 +88,18 @@ export type MethodUpperCase =
 
 export type MemberOf<T, U> = T extends U ? T : never;
 
-export type MiddlewareProps<TMiddleware extends RequestHandler[]> = Required<
-  UnionToIntersection<Parameters<TMiddleware[number]>[0]['data']>
->;
+export type Middleware<
+  TData extends RequestData = RequestData,
+  TParams extends Params = Params,
+  TResponseBody = unknown,
+  TRequestBody = unknown,
+  TQuery extends Query = Query,
+  TLocals extends Locals = Locals,
+> = (
+  req: Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals, TData>,
+  res: express.Response<TResponseBody, TLocals>,
+  next: express.NextFunction,
+) => Promisable<unknown>;
 
 export type Params = {
   [K in string]?: string;
@@ -145,16 +154,6 @@ export type RequestHandler<
   next: express.NextFunction,
 ) => Promisable<unknown>;
 
-export type RequestHandlerWithMiddleware<TMiddleware extends any[]> =
-  RequestHandler<
-    Params,
-    unknown,
-    unknown,
-    Query,
-    Locals,
-    MiddlewareProps<TMiddleware>
-  >;
-
 export type Response<
   TApi extends Api,
   TMethod extends Method,
@@ -194,17 +193,11 @@ export type RouterValueOf<
   EndpointDefinition
 >[TKey];
 
-export type SafeRouterOptions<TMiddleware extends RequestHandler[]> = {
-  middleware?: TMiddleware;
+export type SafeRouterOptions<TData extends RequestData> = {
+  middleware?: Middleware<TData>[];
 };
 
 export type TransformFunction = (string: string) => string;
-
-export type UnionToIntersection<T> = (
-  T extends any ? (K: T) => void : never
-) extends (K: infer I) => void
-  ? I
-  : never;
 
 /**
  * Note: body-parser requires the first request body JSON character to be "{" or "[".

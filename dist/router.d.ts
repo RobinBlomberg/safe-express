@@ -1,23 +1,23 @@
 import express from 'express';
-import { ApiRequestHandler, MiddlewareProps, Path, RequestHandler, RouterApi, SafeRouterOptions } from '.';
-export declare class SafeRouter<TApi extends RouterApi, TMiddleware extends RequestHandler[]> {
+import { ApiRequestHandler, Middleware, Path, RequestData, RouterApi, SafeRouterOptions } from '.';
+export declare class SafeRouter<TApi extends RouterApi, TData extends RequestData = RequestData> {
     #private;
     readonly api: TApi;
-    readonly middleware: RequestHandler[];
+    readonly middleware: Middleware<TData>[];
     readonly router: express.Router;
-    constructor(api: TApi, options?: SafeRouterOptions<TMiddleware>);
-    delete<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    delete<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    options<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    options<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    patch<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    patch<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath, MiddlewareProps<TMiddleware>>): void;
-    put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: RequestHandler[], requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath, MiddlewareProps<TMiddleware>>): void;
+    constructor(api: TApi, options?: SafeRouterOptions<TData>);
+    delete<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath, TData>): void;
+    delete<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>, requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath, TData>): void;
+    get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath, TData>): void;
+    get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>[], requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath, TData>): void;
+    head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath, TData>): void;
+    head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>[], requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath, TData>): void;
+    options<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath, TData>): void;
+    options<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>[], requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath, TData>): void;
+    patch<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath, TData>): void;
+    patch<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>[], requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath, TData>): void;
+    post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath, TData>): void;
+    post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>[], requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath, TData>): void;
+    put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath, TData>): void;
+    put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, middleware: Middleware<TData>[], requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath, TData>): void;
 }

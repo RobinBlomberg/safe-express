@@ -1,19 +1,12 @@
-import { Locals, Params, Query, RequestHandler } from '../..';
+import { Middleware } from '../..';
 
-export const userParser = (): RequestHandler<
-  Params,
-  unknown,
-  unknown,
-  Query,
-  Locals,
-  { user: { name: string } }
-> => {
-  return (req, res, next) => {
-    const authToken = req.cookies['sally.authToken'];
-    if (authToken) {
-      req.data.user = { name: 'Hello world!' };
+export const userParser = (): Middleware => {
+  return (req) => {
+    const user = (req.data.cookies as any).user;
+    if (req.data.cookies instanceof Object && typeof user === 'string') {
+      try {
+        req.data.user = JSON.parse(user);
+      } catch {}
     }
-
-    next();
   };
 };

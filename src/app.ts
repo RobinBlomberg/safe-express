@@ -1,7 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { AppOptions, RequestHandler, SafeRouter } from '.';
+import { AppOptions, SafeRouter } from '.';
 import { logger } from './internal/logger';
 import { Api } from './types';
 
@@ -36,10 +36,10 @@ export class SafeApp<TApi extends Api> {
     return this;
   }
 
-  useRouter<
-    TRouterPath extends keyof TApi & string,
-    TMiddleware extends RequestHandler[],
-  >(path: TRouterPath, router: SafeRouter<TApi[TRouterPath], TMiddleware>) {
+  useRouter<TRouterPath extends keyof TApi & string>(
+    path: TRouterPath,
+    router: SafeRouter<TApi[TRouterPath], any>,
+  ) {
     this.#app.use(path, router.router);
 
     return this;

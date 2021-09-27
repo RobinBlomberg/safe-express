@@ -14,3 +14,8 @@ Content-Type: application/json
   "email": "frank@example.com",
   "name": "Frank"
 }
+
+###
+GET http://localhost:3000/api/v1/user/me
+Content-Type: application/json
+Cookie: user={"id":34,"name":"Frank","role":"ADMIN"}

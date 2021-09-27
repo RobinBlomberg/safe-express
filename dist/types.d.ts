@@ -9,7 +9,7 @@ export declare type Api<TApi extends {
     [KPath in Path]?: RouterApi;
 }> = TApi;
 export declare type ApiRequest<TApi extends Api, TMethod extends Method, TRoutePath extends Path, TData extends RequestData> = Request<expressCore.RouteParameters<TRoutePath>, ResponseBodyOf<TApi, TMethod, TRoutePath>, RequestBodyOf<TApi, TMethod, TRoutePath>, Query, Locals, TData>;
-export declare type ApiRequestHandler<TApi extends Api = Api, TMethod extends Method = Method, TRoutePath extends Path = Path, TData extends RequestData = RequestData> = (req: ApiRequest<TApi, TMethod, TRoutePath, TData>, res: Response<TApi, TMethod, TRoutePath>, next: express.NextFunction) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
+export declare type ApiRequestHandler<TApi extends Api = Api, TMethod extends Method = Method, TRoutePath extends Path = Path, TData extends RequestData = {}> = (req: ApiRequest<TApi, TMethod, TRoutePath, TData>, res: Response<TApi, TMethod, TRoutePath>, next: express.NextFunction) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
 export declare type AppOptions<TApi extends Api> = {
     api: TApi;
     cors?: cors.CorsOptions;
@@ -33,7 +33,7 @@ export declare type Locals = {
 export declare type Method = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put';
 export declare type MethodUpperCase = 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT';
 export declare type MemberOf<T, U> = T extends U ? T : never;
-export declare type MiddlewareProps<TMiddleware extends RequestHandler[]> = Required<UnionToIntersection<Parameters<TMiddleware[number]>[0]['data']>>;
+export declare type Middleware<TData extends RequestData = RequestData, TParams extends Params = Params, TResponseBody = unknown, TRequestBody = unknown, TQuery extends Query = Query, TLocals extends Locals = Locals> = (req: Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals, TData>, res: express.Response<TResponseBody, TLocals>, next: express.NextFunction) => Promisable<unknown>;
 export declare type Params = {
     [K in string]?: string;
 };
@@ -54,7 +54,6 @@ export declare type RequestErrorOptions<TCode extends string> = {
     status: number;
 };
 export declare type RequestHandler<TParams extends Params = Params, TResponseBody = unknown, TRequestBody = unknown, TQuery extends Query = Query, TLocals extends Locals = Locals, TData extends RequestData = any> = (req: Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals, TData>, res: express.Response<TResponseBody, TLocals>, next: express.NextFunction) => Promisable<unknown>;
-export declare type RequestHandlerWithMiddleware<TMiddleware extends any[]> = RequestHandler<Params, unknown, unknown, Query, Locals, MiddlewareProps<TMiddleware>>;
 export declare type Response<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = express.Response<ResponseBodyOf<TApi, TMethod, TRoutePath>, Locals>;
 export declare type ResponseBodyOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path> = z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'responseBody'>>;
 export declare type RouteDefinition = {
@@ -66,11 +65,10 @@ export declare type RouterApi<TRouterApi extends {
     [KPath in Path]?: RouteDefinition;
 }> = TRouterApi;
 export declare type RouterValueOf<TApi extends Api, TMethod extends Method, TRoutePath extends Path, TKey extends keyof ValueOf<ValueOf<TApi, TRoutePath, RouteDefinition>, TMethod, EndpointDefinition>> = ValueOf<ValueOf<TApi, TRoutePath, RouteDefinition>, TMethod, EndpointDefinition>[TKey];
-export declare type SafeRouterOptions<TMiddleware extends RequestHandler[]> = {
-    middleware?: TMiddleware;
+export declare type SafeRouterOptions<TData extends RequestData> = {
+    middleware?: Middleware<TData>[];
 };
 export declare type TransformFunction = (string: string) => string;
-export declare type UnionToIntersection<T> = (T extends any ? (K: T) => void : never) extends (K: infer I) => void ? I : never;
 /**
  * Note: body-parser requires the first request body JSON character to be "{" or "[".
  */

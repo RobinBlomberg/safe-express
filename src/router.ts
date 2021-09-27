@@ -6,13 +6,13 @@ import {
   BodyParserError,
   Locals,
   Method,
-  MiddlewareProps,
+  Middleware,
   Path,
   Query,
   Request,
   RequestBodyOf,
+  RequestData,
   RequestError,
-  RequestHandler,
   ResponseBodyOf,
   RouterApi,
   SafeRouterOptions,
@@ -20,13 +20,13 @@ import {
 
 export class SafeRouter<
   TApi extends RouterApi,
-  TMiddleware extends RequestHandler[],
+  TData extends RequestData = RequestData,
 > {
   readonly api: TApi;
-  readonly middleware: RequestHandler[];
+  readonly middleware: Middleware<TData>[];
   readonly router: express.Router;
 
-  constructor(api: TApi, options: SafeRouterOptions<TMiddleware> = {}) {
+  constructor(api: TApi, options: SafeRouterOptions<TData> = {}) {
     this.api = api;
     this.middleware = options.middleware ?? [];
     this.router = express.Router();
@@ -37,8 +37,8 @@ export class SafeRouter<
     path: TRoutePath,
     args: any[],
   ) {
-    const middleware: RequestHandler[] = args[1] ? args[0] : [];
-    const requestHandler: ApiRequestHandler<TApi, TMethod, TRoutePath> =
+    const middleware: Middleware<TData>[] = args[1] ? args[0] : [];
+    const requestHandler: ApiRequestHandler<TApi, TMethod, TRoutePath, TData> =
       args[1] ?? args[0];
 
     this.router[method]<
@@ -64,15 +64,17 @@ export class SafeRouter<
         ResponseBodyOf<TApi, TMethod, TRoutePath>,
         RequestBodyOf<TApi, TMethod, TRoutePath>,
         Query,
-        Locals
+        Locals,
+        TData
       >;
 
-      req.data = {};
+      req.data = {} as TData;
 
       try {
+        const handlers = [...this.middleware, ...middleware, requestHandler];
         let responseBody;
 
-        for (const handler of [...middleware, requestHandler]) {
+        for (const handler of handlers) {
           // eslint-disable-next-line no-await-in-loop
           responseBody = await Promise.resolve(handler(req, res, next));
         }
@@ -101,22 +103,12 @@ export class SafeRouter<
 
   delete<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'delete',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath, TData>,
   ): void;
   delete<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'delete',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>,
+    requestHandler: ApiRequestHandler<TApi, 'delete', TRoutePath, TData>,
   ): void;
   delete<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
@@ -127,22 +119,12 @@ export class SafeRouter<
 
   get<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'get',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath, TData>,
   ): void;
   get<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'get',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>[],
+    requestHandler: ApiRequestHandler<TApi, 'get', TRoutePath, TData>,
   ): void;
   get<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
     this.#on('get', path, args);
@@ -150,22 +132,12 @@ export class SafeRouter<
 
   head<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'head',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath, TData>,
   ): void;
   head<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'head',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>[],
+    requestHandler: ApiRequestHandler<TApi, 'head', TRoutePath, TData>,
   ): void;
   head<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
     this.#on('head', path, args);
@@ -173,22 +145,12 @@ export class SafeRouter<
 
   options<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'options',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath, TData>,
   ): void;
   options<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'options',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>[],
+    requestHandler: ApiRequestHandler<TApi, 'options', TRoutePath, TData>,
   ): void;
   options<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
@@ -199,22 +161,12 @@ export class SafeRouter<
 
   patch<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'patch',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath, TData>,
   ): void;
   patch<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'patch',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>[],
+    requestHandler: ApiRequestHandler<TApi, 'patch', TRoutePath, TData>,
   ): void;
   patch<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
@@ -225,22 +177,12 @@ export class SafeRouter<
 
   post<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'post',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath, TData>,
   ): void;
   post<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'post',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>[],
+    requestHandler: ApiRequestHandler<TApi, 'post', TRoutePath, TData>,
   ): void;
   post<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
     this.#on('post', path, args);
@@ -248,22 +190,12 @@ export class SafeRouter<
 
   put<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'put',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath, TData>,
   ): void;
   put<TRoutePath extends Path & keyof TApi>(
     path: TRoutePath,
-    middleware: RequestHandler[],
-    requestHandler: ApiRequestHandler<
-      TApi,
-      'put',
-      TRoutePath,
-      MiddlewareProps<TMiddleware>
-    >,
+    middleware: Middleware<TData>[],
+    requestHandler: ApiRequestHandler<TApi, 'put', TRoutePath, TData>,
   ): void;
   put<TRoutePath extends Path & keyof TApi>(path: TRoutePath, ...args: any[]) {
     this.#on('put', path, args);
