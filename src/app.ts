@@ -1,7 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { AppOptions, SafeRouter } from '.';
+import { AppOptions, RequestHandler, SafeRouter } from '.';
 import { logger } from './internal/logger';
 import { Api } from './types';
 
@@ -12,15 +12,15 @@ export class SafeApp<TApi extends Api> {
     this.#app = express();
 
     if (options.log) {
-      this.useMiddleware(
+      this.#app.use(
         logger(typeof options.log === 'boolean' ? undefined : options.log),
       );
     }
 
-    this.useMiddleware(express.json());
-    this.useMiddleware(express.urlencoded({ extended: true }));
-    this.useMiddleware(cookieParser());
-    this.useMiddleware(cors(options.cors));
+    this.#app.use(express.json());
+    this.#app.use(express.urlencoded({ extended: true }));
+    this.#app.use(cookieParser());
+    this.#app.use(cors(options.cors));
   }
 
   listen(port: number | string, callback?: () => void) {
@@ -36,16 +36,10 @@ export class SafeApp<TApi extends Api> {
     return this;
   }
 
-  useMiddleware(requestHandler: express.RequestHandler) {
-    this.#app.use(requestHandler);
-
-    return this;
-  }
-
-  useRouter<TRouterPath extends keyof TApi & string>(
-    path: TRouterPath,
-    router: SafeRouter<TApi[TRouterPath]>,
-  ) {
+  useRouter<
+    TRouterPath extends keyof TApi & string,
+    TMiddleware extends RequestHandler[],
+  >(path: TRouterPath, router: SafeRouter<TApi[TRouterPath], TMiddleware>) {
     this.#app.use(path, router.router);
 
     return this;

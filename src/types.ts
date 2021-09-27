@@ -13,12 +13,27 @@ export type Api<
   },
 > = TApi;
 
+export type ApiRequest<
+  TApi extends Api,
+  TMethod extends Method,
+  TRoutePath extends Path,
+  TData extends RequestData,
+> = Request<
+  expressCore.RouteParameters<TRoutePath>,
+  ResponseBodyOf<TApi, TMethod, TRoutePath>,
+  RequestBodyOf<TApi, TMethod, TRoutePath>,
+  Query,
+  Locals,
+  TData
+>;
+
 export type ApiRequestHandler<
   TApi extends Api = Api,
   TMethod extends Method = Method,
   TRoutePath extends Path = Path,
+  TData extends RequestData = RequestData,
 > = (
-  req: Request<TApi, TMethod, TRoutePath>,
+  req: ApiRequest<TApi, TMethod, TRoutePath, TData>,
   res: Response<TApi, TMethod, TRoutePath>,
   next: express.NextFunction,
 ) => Promisable<ResponseBodyOf<TApi, TMethod, TRoutePath>>;
@@ -44,7 +59,7 @@ export type EndpointDefinition = {
 
 export type ErrorRequestHandler = (
   error: Error,
-  req: Request<Api, Method, Path>,
+  req: ApiRequest<Api, Method, Path, RequestData>,
   res: Response<Api, Method, Path>,
   next: express.NextFunction,
 ) => Promisable<void>;
@@ -73,6 +88,10 @@ export type MethodUpperCase =
 
 export type MemberOf<T, U> = T extends U ? T : never;
 
+export type MiddlewareProps<TMiddleware extends RequestHandler[]> = Required<
+  UnionToIntersection<Parameters<TMiddleware[number]>[0]['data']>
+>;
+
 export type Params = {
   [K in string]?: string;
 };
@@ -86,16 +105,15 @@ export type Query = {
 };
 
 export type Request<
-  TApi extends Api,
-  TMethod extends Method,
-  TRoutePath extends Path,
-> = express.Request<
-  expressCore.RouteParameters<TRoutePath>,
-  ResponseBodyOf<TApi, TMethod, TRoutePath>,
-  RequestBodyOf<TApi, TMethod, TRoutePath>,
-  Query,
-  Locals
->;
+  TParams extends Params = Params,
+  TResponseBody = unknown,
+  TRequestBody = unknown,
+  TQuery extends Query = Query,
+  TLocals extends Locals = Locals,
+  TData extends RequestData = RequestData,
+> = express.Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals> & {
+  data: TData;
+};
 
 export type RequestBodyOf<
   TApi extends Api,
@@ -104,6 +122,10 @@ export type RequestBodyOf<
 > = RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'> extends z.ZodTypeAny
   ? z.TypeOf<RouterValueOf<TApi, TMethod, TRoutePath, 'requestBody'>>
   : undefined;
+
+export type RequestData = {
+  [K in string]?: unknown;
+};
 
 export type RequestErrorOptions<TCode extends string> = {
   code: TCode;
@@ -116,11 +138,22 @@ export type RequestHandler<
   TRequestBody = unknown,
   TQuery extends Query = Query,
   TLocals extends Locals = Locals,
+  TData extends RequestData = any,
 > = (
-  req: express.Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals>,
+  req: Request<TParams, TResponseBody, TRequestBody, TQuery, TLocals, TData>,
   res: express.Response<TResponseBody, TLocals>,
   next: express.NextFunction,
 ) => Promisable<unknown>;
+
+export type RequestHandlerWithMiddleware<TMiddleware extends any[]> =
+  RequestHandler<
+    Params,
+    unknown,
+    unknown,
+    Query,
+    Locals,
+    MiddlewareProps<TMiddleware>
+  >;
 
 export type Response<
   TApi extends Api,
@@ -161,7 +194,17 @@ export type RouterValueOf<
   EndpointDefinition
 >[TKey];
 
+export type SafeRouterOptions<TMiddleware extends RequestHandler[]> = {
+  middleware?: TMiddleware;
+};
+
 export type TransformFunction = (string: string) => string;
+
+export type UnionToIntersection<T> = (
+  T extends any ? (K: T) => void : never
+) extends (K: infer I) => void
+  ? I
+  : never;
 
 /**
  * Note: body-parser requires the first request body JSON character to be "{" or "[".
@@ -173,6 +216,7 @@ export type ValidRequestBody =
 export type ValidRequestBodyPrimitive =
   | z.ZodArray<z.ZodTypeAny>
   | z.ZodIntersection<ValidRequestBody, ValidRequestBody>
+  | z.ZodNullable<ValidRequestBodyPrimitive>
   | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
   | z.ZodRecord
   | z.ZodTuple

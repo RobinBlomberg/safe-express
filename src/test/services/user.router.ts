@@ -2,10 +2,11 @@ import { status } from '@robinblomberg/http-status';
 import { RequestError } from '../../request-error';
 import { SafeRouter } from '../../router';
 import { userApi } from '../apis/user.api';
+import { routerOptions } from '../configs/router-options.config';
 import { ErrorCode } from '../enums';
 import { db } from './user.db';
 
-const router = new SafeRouter(userApi);
+const router = new SafeRouter(userApi, routerOptions);
 
 router.get('/', () => {
   return db.dispatch('GET_USERS');
@@ -31,5 +32,10 @@ router.get('/:id', (req) => {
 
   return user;
 });
+
+router.get('/me', (req) => ({
+  id: req.data.cookies['user-id'] ?? null,
+  name: req.data.user.name,
+}));
 
 export { router as userRouter };

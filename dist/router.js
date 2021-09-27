@@ -23,9 +23,11 @@ const http_status_1 = require("@robinblomberg/http-status");
 const express_1 = __importDefault(require("express"));
 const _1 = require(".");
 class SafeRouter {
-    constructor(api) {
+    constructor(api, options = {}) {
+        var _a;
         _SafeRouter_instances.add(this);
         this.api = api;
+        this.middleware = (_a = options.middleware) !== null && _a !== void 0 ? _a : [];
         this.router = express_1.default.Router();
     }
     delete(path, ...args) {
@@ -55,17 +57,19 @@ _SafeRouter_instances = new WeakSet(), _SafeRouter_on = function _SafeRouter_on(
     var _a;
     const middleware = args[1] ? args[0] : [];
     const requestHandler = (_a = args[1]) !== null && _a !== void 0 ? _a : args[0];
-    this.router[method](path, (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+    this.router[method](path, (originalReq, res, next) => __awaiter(this, void 0, void 0, function* () {
         var _b, _c;
         const schema = (_c = (_b = this.api[path]) === null || _b === void 0 ? void 0 : _b[method]) === null || _c === void 0 ? void 0 : _c.requestBody;
         if (schema) {
-            const result = schema.safeParse(req.body);
+            const result = schema.safeParse(originalReq.body);
             if (!result.success) {
                 res.status(http_status_1.status.clientError.BAD_REQUEST);
                 res.json(result.error.errors);
                 return;
             }
         }
+        const req = originalReq;
+        req.data = {};
         try {
             let responseBody;
             for (const handler of [...middleware, requestHandler]) {

@@ -25,12 +25,12 @@ class SafeApp {
         _SafeApp_app.set(this, void 0);
         __classPrivateFieldSet(this, _SafeApp_app, (0, express_1.default)(), "f");
         if (options.log) {
-            this.useMiddleware((0, logger_1.logger)(typeof options.log === 'boolean' ? undefined : options.log));
+            __classPrivateFieldGet(this, _SafeApp_app, "f").use((0, logger_1.logger)(typeof options.log === 'boolean' ? undefined : options.log));
         }
-        this.useMiddleware(express_1.default.json());
-        this.useMiddleware(express_1.default.urlencoded({ extended: true }));
-        this.useMiddleware((0, cookie_parser_1.default)());
-        this.useMiddleware((0, cors_1.default)(options.cors));
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use(express_1.default.json());
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use(express_1.default.urlencoded({ extended: true }));
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use((0, cookie_parser_1.default)());
+        __classPrivateFieldGet(this, _SafeApp_app, "f").use((0, cors_1.default)(options.cors));
     }
     listen(port, callback) {
         __classPrivateFieldGet(this, _SafeApp_app, "f").listen(port);
@@ -39,10 +39,6 @@ class SafeApp {
     }
     useErrorRequestHandler(errorRequestHandler) {
         __classPrivateFieldGet(this, _SafeApp_app, "f").use(errorRequestHandler);
-        return this;
-    }
-    useMiddleware(requestHandler) {
-        __classPrivateFieldGet(this, _SafeApp_app, "f").use(requestHandler);
         return this;
     }
     useRouter(path, router) {
