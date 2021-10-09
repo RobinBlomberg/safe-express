@@ -1,6 +1,8 @@
-import { Router } from '..';
-import { userApi } from './user-api';
+import express from 'express';
+import { userRouter } from './user-router';
 
-const userRouter = new Router<typeof userApi>();
+const app = express();
 
-userRouter.post('/', (req, res) => {});
+app.use('/api/v1/user', userRouter.router);
+
+app.listen(3000);
