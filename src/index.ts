@@ -4,12 +4,13 @@ import { paramsParser, queryParser, requestBodyParser } from './middleware';
 import {
   Method,
   Path,
+  Props,
   RequestHandler,
   RequestParser,
   RouterSchema,
 } from './types';
 
-export class Router<TRouterSchema extends RouterSchema> {
+export class Router<TRouterSchema extends RouterSchema, TProps extends Props> {
   readonly parsers: RequestParser[];
   readonly router = express.Router();
 
@@ -30,14 +31,15 @@ export class Router<TRouterSchema extends RouterSchema> {
     TPath extends keyof TRouterSchema & Path,
     TRequestHandler extends RequestHandler<
       TPath,
-      TRouterSchema[TPath][TMethod]
+      TRouterSchema[TPath][TMethod],
+      TProps
     >,
   >(method: TMethod, path: TPath, originalRequestHandler: TRequestHandler) {
-    const requestHandler = ((req, res, next) => {
+    const requestHandler: express.RequestHandler = (req, res, next) => {
       let headersSent = false;
 
       for (const parser of this.parsers) {
-        headersSent = parser(req as any, res);
+        headersSent = parser(req, res);
 
         if (headersSent) {
           break;
@@ -45,61 +47,77 @@ export class Router<TRouterSchema extends RouterSchema> {
       }
 
       if (!headersSent) {
-        const returnee = originalRequestHandler(req, res, next);
+        const returnee = originalRequestHandler(req as any, res, next);
 
         Promise.resolve(returnee).catch(next);
       }
-    }) as TRequestHandler;
+    };
 
     this.router[method](path, requestHandler);
   }
 
   delete<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['delete']>,
+    requestHandler: RequestHandler<
+      TPath,
+      TRouterSchema[TPath]['delete'],
+      TProps
+    >,
   ) {
     this.#on('delete', path, requestHandler);
   }
 
   get<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['get']>,
+    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['get'], TProps>,
   ) {
     this.#on('get', path, requestHandler);
   }
 
   head<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['head']>,
+    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['head'], TProps>,
   ) {
     this.#on('head', path, requestHandler);
   }
 
   options<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['options']>,
+    requestHandler: RequestHandler<
+      TPath,
+      TRouterSchema[TPath]['options'],
+      TProps
+    >,
   ) {
     this.#on('options', path, requestHandler);
   }
 
   patch<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['patch']>,
+    requestHandler: RequestHandler<
+      TPath,
+      TRouterSchema[TPath]['patch'],
+      TProps
+    >,
   ) {
     this.#on('patch', path, requestHandler);
   }
 
   post<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['post']>,
+    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['post'], TProps>,
   ) {
     this.#on('post', path, requestHandler);
   }
 
   put<TPath extends keyof TRouterSchema & Path>(
     path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['put']>,
+    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['put'], TProps>,
   ) {
     this.#on('put', path, requestHandler);
+  }
+
+  use(handler: RequestHandler<Path, TRouterSchema[Path][Method], TProps>) {
+    this.router.use(handler as express.RequestHandler);
   }
 }

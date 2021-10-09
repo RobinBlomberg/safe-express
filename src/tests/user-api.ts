@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { $newUser, $user } from './user-schemas';
 
+export type UserApi = typeof userApi;
+
 export const userApi = {
   '/': {
     get: {
@@ -20,6 +22,11 @@ export const userApi = {
         id: z.string().transform(Number),
       }),
       responseBody: $user.nullable(),
+    },
+  },
+  '/me': {
+    get: {
+      responseBody: $user,
     },
   },
 };
