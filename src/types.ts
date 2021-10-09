@@ -29,7 +29,7 @@ export type Method =
 export type ParamsSchema = z.ZodObject<z.ZodRawShape>;
 
 export type ParamsShape<TParamsSchema extends ParamsSchema | undefined> =
-  TParamsSchema extends ParamsSchema ? z.infer<TParamsSchema> : {};
+  TParamsSchema extends ParamsSchema ? z.infer<TParamsSchema> : never;
 
 export type Path = `/${string}`;
 
