@@ -10,11 +10,11 @@ import {
   RouterSchema,
 } from './types';
 
-export class Router<TRouterSchema extends RouterSchema, TProps extends Props> {
+export class Router<RS extends RouterSchema, RP extends Props> {
   readonly parsers: RequestParser[];
   readonly router = express.Router();
 
-  constructor(schema: TRouterSchema) {
+  constructor(schema: RS) {
     this.router.use(express.json());
     this.router.use(express.urlencoded({ extended: true }));
     this.router.use(cookieParser());
@@ -27,14 +27,28 @@ export class Router<TRouterSchema extends RouterSchema, TProps extends Props> {
   }
 
   #on<
-    TMethod extends Method,
-    TPath extends keyof TRouterSchema & Path,
-    TRequestHandler extends RequestHandler<
-      TPath,
-      TRouterSchema[TPath][TMethod],
-      TProps
-    >,
-  >(method: TMethod, path: TPath, originalRequestHandler: TRequestHandler) {
+    M extends Method,
+    P extends keyof RS & Path,
+    RH extends RequestHandler<P, RS[P][M], RP>,
+  >(method: M, path: P, originalRequestHandler: RH): void;
+  #on<
+    M extends Method,
+    P extends keyof RS & Path,
+    RH extends RequestHandler<P, RS[P][M], RP>,
+  >(
+    method: M,
+    path: P,
+    middleware: express.RequestHandler[],
+    originalRequestHandler: RH,
+  ): void;
+  #on<
+    M extends Method,
+    P extends keyof RS & Path,
+    RH extends RequestHandler<P, RS[P][M], RP>,
+  >(method: M, path: P, ...args: (express.RequestHandler[] | RH)[]) {
+    const middleware = args.slice(0, -1) as express.RequestHandler[];
+    const originalRequestHandler = args[args.length - 1] as RH;
+
     const requestHandler: express.RequestHandler = (req, res, next) => {
       let headersSent = false;
 
@@ -53,71 +67,131 @@ export class Router<TRouterSchema extends RouterSchema, TProps extends Props> {
       }
     };
 
-    this.router[method](path, requestHandler);
+    this.router[method](path, ...middleware, requestHandler);
   }
 
-  delete<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<
-      TPath,
-      TRouterSchema[TPath]['delete'],
-      TProps
-    >,
+  delete<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['delete'], RP>,
+  ): void;
+  delete<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['delete'], RP>,
+  ): void;
+  delete<P extends keyof RS & Path>(
+    path: P,
+    ...args: (
+      | RequestHandler<P, RS[P]['delete'], RP>
+      | express.RequestHandler[]
+    )[]
   ) {
-    this.#on('delete', path, requestHandler);
+    (this.#on as Function).call(this, 'delete', path, ...args);
   }
 
-  get<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['get'], TProps>,
+  get<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['get'], RP>,
+  ): void;
+  get<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['get'], RP>,
+  ): void;
+  get<P extends keyof RS & Path>(
+    path: P,
+    ...args: (RequestHandler<P, RS[P]['get'], RP> | express.RequestHandler[])[]
   ) {
-    this.#on('get', path, requestHandler);
+    (this.#on as Function).call(this, 'get', path, ...args);
   }
 
-  head<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['head'], TProps>,
+  head<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['head'], RP>,
+  ): void;
+  head<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['head'], RP>,
+  ): void;
+  head<P extends keyof RS & Path>(
+    path: P,
+    ...args: (RequestHandler<P, RS[P]['head'], RP> | express.RequestHandler[])[]
   ) {
-    this.#on('head', path, requestHandler);
+    (this.#on as Function).call(this, 'head', path, ...args);
   }
 
-  options<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<
-      TPath,
-      TRouterSchema[TPath]['options'],
-      TProps
-    >,
+  options<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['options'], RP>,
+  ): void;
+  options<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['options'], RP>,
+  ): void;
+  options<P extends keyof RS & Path>(
+    path: P,
+    ...args: (
+      | RequestHandler<P, RS[P]['options'], RP>
+      | express.RequestHandler[]
+    )[]
   ) {
-    this.#on('options', path, requestHandler);
+    (this.#on as Function).call(this, 'options', path, ...args);
   }
 
-  patch<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<
-      TPath,
-      TRouterSchema[TPath]['patch'],
-      TProps
-    >,
+  patch<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['patch'], RP>,
+  ): void;
+  patch<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['patch'], RP>,
+  ): void;
+  patch<P extends keyof RS & Path>(
+    path: P,
+    ...args: (
+      | RequestHandler<P, RS[P]['patch'], RP>
+      | express.RequestHandler[]
+    )[]
   ) {
-    this.#on('patch', path, requestHandler);
+    (this.#on as Function).call(this, 'patch', path, ...args);
   }
 
-  post<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['post'], TProps>,
+  post<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['post'], RP>,
+  ): void;
+  post<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['post'], RP>,
+  ): void;
+  post<P extends keyof RS & Path>(
+    path: P,
+    ...args: (RequestHandler<P, RS[P]['post'], RP> | express.RequestHandler[])[]
   ) {
-    this.#on('post', path, requestHandler);
+    (this.#on as Function).call(this, 'post', path, ...args);
   }
 
-  put<TPath extends keyof TRouterSchema & Path>(
-    path: TPath,
-    requestHandler: RequestHandler<TPath, TRouterSchema[TPath]['put'], TProps>,
+  put<P extends keyof RS & Path>(
+    path: P,
+    requestHandler: RequestHandler<P, RS[P]['put'], RP>,
+  ): void;
+  put<P extends keyof RS & Path>(
+    path: P,
+    middleware: express.RequestHandler[],
+    requestHandler: RequestHandler<P, RS[P]['put'], RP>,
+  ): void;
+  put<P extends keyof RS & Path>(
+    path: P,
+    ...args: (RequestHandler<P, RS[P]['put'], RP> | express.RequestHandler[])[]
   ) {
-    this.#on('put', path, requestHandler);
+    (this.#on as Function).call(this, 'put', path, ...args);
   }
 
-  use(handler: RequestHandler<Path, TRouterSchema[Path][Method], TProps>) {
+  use(handler: RequestHandler<Path, RS[Path][Method], RP>) {
     this.router.use(handler as express.RequestHandler);
   }
 }

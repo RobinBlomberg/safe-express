@@ -1,6 +1,7 @@
 import { Router } from '..';
 import { UserApi, userApi } from './user-api';
 import { User } from './user-schemas';
+import { withAuth } from './with-auth';
 
 type Props = {
   user: User;
@@ -27,7 +28,7 @@ userRouter.get('/', (req, res) => {
   res.json(filteredUsers);
 });
 
-userRouter.get('/me', (req, res) => {
+userRouter.get('/me', [withAuth()], (req, res) => {
   res.json(req.user);
 });
 
