@@ -13,7 +13,7 @@ export const withAuth = () => {
     if (!req.user || req.user.id == null) {
       res
         .status(STATUS_CODE_UNAUTHORIZED)
-        .json({ code: 'USER_NOT_AUTHORIZED' });
+        .json({ code: 'UserNotAuthorized', errors: [] });
       return;
     }
 

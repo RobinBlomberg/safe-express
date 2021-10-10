@@ -16,7 +16,7 @@ export const queryParser = (routerSchema: RouterSchema) => {
       if (!result.success) {
         res.status(STATUS_BAD_REQUEST);
         res.json({
-          code: 'INVALID_QUERY',
+          code: 'InvalidQuery',
           errors: result.error.errors,
         });
         return true;

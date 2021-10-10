@@ -16,7 +16,7 @@ export const paramsParser = (routerSchema: RouterSchema) => {
       if (!result.success) {
         res.status(STATUS_BAD_REQUEST);
         res.json({
-          code: 'INVALID_PARAMS',
+          code: 'InvalidParams',
           errors: result.error.errors,
         });
         return true;
