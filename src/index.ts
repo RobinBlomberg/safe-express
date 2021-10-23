@@ -10,6 +10,8 @@ import {
   RouterSchema,
 } from './types';
 
+export * from './types';
+
 export class Router<RS extends RouterSchema, RP extends Props> {
   readonly parsers: RequestParser[];
   readonly router = express.Router();
