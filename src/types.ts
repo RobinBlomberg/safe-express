@@ -2,6 +2,10 @@ import Express from 'express-serve-static-core';
 import qs from 'qs';
 import { z } from 'zod';
 
+export type ApiSchema = {
+  [KPath in Path]: RouterSchema;
+};
+
 export type CombinedParams<
   TPath extends Path = Path,
   TRequestSchema extends RequestSchema = RequestSchema,
@@ -129,5 +133,5 @@ export type ResponseBodyShape<
 > = z.infer<TResponseBodySchema>;
 
 export type RouterSchema = {
-  [KPath in string]: EndpointSchema;
+  [KPath in Path]: EndpointSchema;
 };

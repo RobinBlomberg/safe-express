@@ -1,6 +1,6 @@
 {
   "name": "@robinblomberg/safe-express",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "author": "Robin Blomberg",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,8 +13,9 @@
   },
   "homepage": "https://github.com/RobinBlomberg/safe-express#readme",
   "scripts": {
+    "build": "tsc",
     "lint": "eslint ./src",
-    "test": "tsc-watch --project ./tsconfig.json --onSuccess \"node --enable-source-maps ./dist/tests/index.test.js\""
+    "test": "tsc-watch --onSuccess \"node --enable-source-maps ./dist/tests/index.test.js\""
   },
   "dependencies": {
     "cookie-parser": "^1.4.5",
