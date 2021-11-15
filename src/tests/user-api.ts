@@ -21,7 +21,8 @@ export const userApi = {
       params: z.object({
         id: z.string().transform(Number),
       }),
-      responseBody: $user.nullable(),
+      responseBody: $user,
+      responseError: z.literal('User not found'),
     },
   },
   '/me': {

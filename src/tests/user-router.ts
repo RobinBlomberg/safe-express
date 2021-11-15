@@ -33,9 +33,13 @@ userRouter.get('/me', [withAuth()], (req, res) => {
 });
 
 userRouter.get('/:id', (req, res) => {
-  const foundUser = users.find((user) => user.id === req.params.id) ?? null;
+  const foundUser = users.find((user) => user.id === req.params.id);
 
-  res.json(foundUser);
+  if (!foundUser) {
+    return res.status(404).json('User not found');
+  }
+
+  return res.json(foundUser);
 });
 
 userRouter.post('/', (req, res) => {

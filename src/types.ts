@@ -49,25 +49,6 @@ export type QueryShape<
   ? z.infer<TQuerySchema>
   : Record<string, never>;
 
-/**
- * Note: body-parser requires the first request body JSON character to be "{" or "[".
- */
-export type RequestBodySchema = z.ZodTypeAny;
-// | z.ZodArray<z.ZodTypeAny>
-// | z.ZodIntersection<RequestBodySchema, RequestBodySchema>
-// | z.ZodObject<z.ZodRawShape>
-// | z.ZodRecord
-// | z.ZodTuple
-// | z.ZodUnion<[RequestBodySchema, ...RequestBodySchema[]]>;
-
-export type RequestBodyShape<
-  TRequestBodySchema extends RequestBodySchema | undefined =
-    | RequestBodySchema
-    | undefined,
-> = TRequestBodySchema extends RequestBodySchema
-  ? z.infer<TRequestBodySchema>
-  : never;
-
 export type RequestHandler<
   TPath extends Path = Path,
   TRequestSchema extends RequestSchema | undefined = RequestSchema | undefined,
@@ -75,15 +56,17 @@ export type RequestHandler<
 > = TRequestSchema extends RequestSchema
   ? RequestHandlerWithProps<
       CombinedParams<TPath, TRequestSchema>,
-      ResponseBodyShape<TRequestSchema['responseBody']>,
-      RequestBodyShape<TRequestSchema['requestBody']>,
+      ZodShape<
+        TRequestSchema['responseBody'] | TRequestSchema['responseError']
+      >,
+      ZodShape<TRequestSchema['requestBody']>,
       QueryShape<TRequestSchema['query']>,
       TProps
     >
   : RequestHandlerWithProps<
       CombinedParams<TPath>,
-      ResponseBodyShape,
-      RequestBodyShape,
+      ZodShape,
+      ZodShape,
       QueryShape,
       TProps
     >;
@@ -115,23 +98,34 @@ export type RequestParser = (
 export type RequestSchema = {
   params?: ParamsSchema;
   query?: QuerySchema;
-  requestBody?: RequestBodySchema;
-  responseBody: ResponseBodySchema;
+  requestBody?: ZodSchema;
+  responseBody: ZodSchema;
+  responseError?: ZodSchema;
 };
 
 export type RequestShape<TRequestSchema extends RequestSchema> = {
   params: ParamsShape<TRequestSchema['params']>;
   query: QueryShape<TRequestSchema['query']>;
-  requestBody: RequestBodyShape<TRequestSchema['requestBody']>;
-  responseBody: ResponseBodyShape<TRequestSchema['responseBody']>;
+  requestBody: ZodShape<TRequestSchema['requestBody']>;
+  responseBody: ZodShape<
+    TRequestSchema['responseBody'] | TRequestSchema['responseError']
+  >;
 };
-
-export type ResponseBodySchema = z.ZodTypeAny;
-
-export type ResponseBodyShape<
-  TResponseBodySchema extends ResponseBodySchema = ResponseBodySchema,
-> = z.infer<TResponseBodySchema>;
 
 export type RouterSchema = {
   [KPath in Path]: EndpointSchema;
 };
+
+/**
+ * Note: body-parser requires the first request body JSON character to be "{" or "[".
+ */
+export type ZodSchema = z.ZodTypeAny;
+// | z.ZodArray<z.ZodTypeAny>
+// | z.ZodIntersection<RequestBodySchema, RequestBodySchema>
+// | z.ZodObject<z.ZodRawShape>
+// | z.ZodRecord
+// | z.ZodTuple
+// | z.ZodUnion<[RequestBodySchema, ...RequestBodySchema[]]>;
+
+export type ZodShape<T extends ZodSchema | undefined = ZodSchema | undefined> =
+  T extends ZodSchema ? z.infer<T> : never;
