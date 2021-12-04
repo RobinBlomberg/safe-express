@@ -32,6 +32,10 @@ userRouter.get('/', (req, res) => {
   res.json(filteredUsers);
 });
 
+userRouter.get('/date', (req, res) => {
+  res.json(req.query);
+});
+
 userRouter.get('/me', [withAuth()], (req, res) => {
   res.json(req.user);
 });

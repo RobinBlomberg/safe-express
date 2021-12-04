@@ -28,6 +28,12 @@ export const userApi = {
       responseError: z.literal('User not found'),
     },
   },
+  '/date': {
+    get: {
+      query: z.date(),
+      responseBody: z.date(),
+    },
+  },
   '/me': {
     get: {
       responseBody: $user,
