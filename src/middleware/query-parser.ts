@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import JSON5 from 'json5';
 import { Method, RouterSchema } from '../types';
 
 const STATUS_BAD_REQUEST = 400;
@@ -8,19 +9,29 @@ const STATUS_BAD_REQUEST = 400;
  */
 export const queryParser = (routerSchema: RouterSchema) => {
   const requestHandler = (req: Request, res: Response) => {
-    const method = req.method.toLowerCase() as Method;
-    const querySchema = routerSchema[req.route.path]?.[method]?.query;
+    const searchIndex = req.originalUrl.indexOf('?');
+    const search =
+      searchIndex === -1 ? '' : req.originalUrl.slice(searchIndex + 1);
 
-    if (querySchema) {
-      const result = querySchema.safeParse(req.query);
-      if (!result.success) {
-        res.status(STATUS_BAD_REQUEST);
-        res.json({
-          code: 'InvalidQuery',
-          errors: result.error.errors,
-        });
-        return true;
+    if (search) {
+      req.query = JSON5.parse(decodeURIComponent(search));
+
+      const method = req.method.toLowerCase() as Method;
+      const querySchema = routerSchema[req.route.path]?.[method]?.query;
+
+      if (querySchema) {
+        const result = querySchema.safeParse(req.query);
+        if (!result.success) {
+          res.status(STATUS_BAD_REQUEST);
+          res.json({
+            code: 'invalid_query',
+            errors: result.error.errors,
+          });
+          return true;
+        }
       }
+    } else {
+      req.query = undefined as any;
     }
 
     return false;

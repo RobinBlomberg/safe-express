@@ -21,6 +21,18 @@ export type EndpointSchema = {
   [KMethod in Method]?: RequestSchema;
 };
 
+/**
+ * Note: body-parser requires the first request body JSON character to be "{" or "[".
+ */
+export type JsonSchema =
+  | z.ZodArray<z.ZodTypeAny>
+  | z.ZodIntersection<JsonSchema, JsonSchema>
+  | z.ZodLiteral<unknown>
+  | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
+  | z.ZodRecord
+  | z.ZodTuple
+  | z.ZodUnion<[JsonSchema, ...JsonSchema[]]>;
+
 export type Method =
   | 'delete'
   | 'get'
@@ -41,7 +53,9 @@ export type Props = {
   [K in number | string | symbol]: unknown;
 };
 
-export type QuerySchema = z.ZodObject<z.ZodRawShape>;
+export type QuerySchema =
+  | z.ZodObject<z.ZodRawShape>
+  | z.ZodOptional<z.ZodObject<z.ZodRawShape>>;
 
 export type QueryShape<
   TQuerySchema extends QuerySchema | undefined = QuerySchema | undefined,
@@ -75,7 +89,7 @@ export type RequestHandlerWithProps<
   TParams extends Record<string, unknown>,
   TResponseBody,
   TRequestBody,
-  TQuery extends qs.ParsedQs,
+  TQuery extends qs.ParsedQs | undefined,
   TProps extends Props,
 > = (
   req: Express.Request<
@@ -98,9 +112,9 @@ export type RequestParser = (
 export type RequestSchema = {
   params?: ParamsSchema;
   query?: QuerySchema;
-  requestBody?: ZodSchema;
-  responseBody: ZodSchema;
-  responseError?: ZodSchema;
+  requestBody?: JsonSchema;
+  responseBody: JsonSchema;
+  responseError?: JsonSchema;
 };
 
 export type RequestShape<TRequestSchema extends RequestSchema> = {
@@ -116,16 +130,6 @@ export type RouterSchema = {
   [KPath in Path]: EndpointSchema;
 };
 
-/**
- * Note: body-parser requires the first request body JSON character to be "{" or "[".
- */
-export type ZodSchema = z.ZodTypeAny;
-// | z.ZodArray<z.ZodTypeAny>
-// | z.ZodIntersection<RequestBodySchema, RequestBodySchema>
-// | z.ZodObject<z.ZodRawShape>
-// | z.ZodRecord
-// | z.ZodTuple
-// | z.ZodUnion<[RequestBodySchema, ...RequestBodySchema[]]>;
-
-export type ZodShape<T extends ZodSchema | undefined = ZodSchema | undefined> =
-  T extends ZodSchema ? z.infer<T> : never;
+export type ZodShape<
+  T extends JsonSchema | undefined = JsonSchema | undefined,
+> = T extends JsonSchema ? z.infer<T> : never;

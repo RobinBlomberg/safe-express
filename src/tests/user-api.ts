@@ -6,9 +6,12 @@ export type UserApi = typeof userApi;
 export const userApi = {
   '/': {
     get: {
-      query: z.object({
-        name: z.string().optional(),
-      }),
+      query: z
+        .object({
+          ids: z.array(z.number()).optional(),
+          names: z.array(z.string()).optional(),
+        })
+        .optional(),
       responseBody: z.array($user),
     },
     post: {

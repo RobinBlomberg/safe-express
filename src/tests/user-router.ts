@@ -21,9 +21,13 @@ userRouter.use((req, res, next) => {
 });
 
 userRouter.get('/', (req, res) => {
-  const filteredUsers = users.filter(
-    (user) => !req.query.name || user.name === req.query.name,
-  );
+  const filteredUsers = users.filter((user) => {
+    return (
+      !req.query ||
+      Boolean(req.query.ids?.includes(user.id)) ||
+      Boolean(req.query.names?.includes(user.name))
+    );
+  });
 
   res.json(filteredUsers);
 });

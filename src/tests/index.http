@@ -2,6 +2,9 @@
 GET http://localhost:3000/api/v1/user
 
 ###
+GET http://localhost:3000/api/v1/user?{ids:[0,2],names:['Charlotte']}
+
+###
 GET http://localhost:3000/api/v1/user/0
 
 ###

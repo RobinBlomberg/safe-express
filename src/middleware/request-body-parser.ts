@@ -16,7 +16,7 @@ export const requestBodyParser = (routerSchema: RouterSchema) => {
       if (!result.success) {
         res.status(STATUS_BAD_REQUEST);
         res.json({
-          code: 'InvalidRequestBody',
+          code: 'invalid_request_body',
           errors: result.error.errors,
         });
         return true;
