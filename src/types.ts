@@ -20,6 +20,8 @@ export type EndpointSchema = {
   [KMethod in Method]?: RequestSchema;
 };
 
+export type Json5Schema = z.ZodTypeAny;
+
 /**
  * NOTE: body-parser requires the first request body JSON character to be "{" or "[".
  */
@@ -65,15 +67,11 @@ export type Props = {
   [K in number | string | symbol]: unknown;
 };
 
-export type QuerySchema =
-  | z.ZodObject<z.ZodRawShape>
-  | z.ZodOptional<z.ZodObject<z.ZodRawShape>>;
+export type QuerySchema = Json5Schema;
 
 export type QueryShape<
   TQuerySchema extends QuerySchema | undefined = QuerySchema | undefined,
-> = TQuerySchema extends QuerySchema
-  ? z.infer<TQuerySchema>
-  : Record<string, never>;
+> = TQuerySchema extends QuerySchema ? z.infer<TQuerySchema> : never;
 
 export type RequestHandler<
   TPath extends Path = Path,
