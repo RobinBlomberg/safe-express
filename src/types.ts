@@ -1,5 +1,4 @@
 import Express from 'express-serve-static-core';
-import qs from 'qs';
 import { z } from 'zod';
 
 export type ApiSchema = {
@@ -22,15 +21,28 @@ export type EndpointSchema = {
 };
 
 /**
- * Note: body-parser requires the first request body JSON character to be "{" or "[".
+ * NOTE: body-parser requires the first request body JSON character to be "{" or "[".
  */
-export type JsonSchema =
-  | z.ZodArray<z.ZodTypeAny>
-  | z.ZodIntersection<JsonSchema, JsonSchema>
-  | z.ZodLiteral<unknown>
+export type JsonRequestBodySchema =
+  | z.ZodArray<JsonSchema, z.ArrayCardinality>
+  | z.ZodIntersection<JsonRequestBodySchema, JsonRequestBodySchema>
   | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
-  | z.ZodRecord
-  | z.ZodTuple
+  | z.ZodRecord<z.ZodString, JsonSchema>
+  | z.ZodTuple<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>
+  | z.ZodUnion<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>;
+
+export type JsonSchema =
+  | z.ZodArray<z.ZodTypeAny, z.ArrayCardinality>
+  | z.ZodBoolean
+  | z.ZodDate // This will be converted to a string.
+  | z.ZodIntersection<JsonSchema, JsonSchema>
+  | z.ZodLiteral<boolean | number | string>
+  | z.ZodNull
+  | z.ZodNumber
+  | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
+  | z.ZodRecord<z.ZodString, JsonSchema>
+  | z.ZodString
+  | z.ZodTuple<[JsonSchema, ...JsonSchema[]]>
   | z.ZodUnion<[JsonSchema, ...JsonSchema[]]>;
 
 export type Method =
@@ -89,7 +101,7 @@ export type RequestHandlerWithProps<
   TParams extends Record<string, unknown>,
   TResponseBody,
   TRequestBody,
-  TQuery extends qs.ParsedQs | undefined,
+  TQuery extends unknown,
   TProps extends Props,
 > = (
   req: Express.Request<
@@ -112,7 +124,7 @@ export type RequestParser = (
 export type RequestSchema = {
   params?: ParamsSchema;
   query?: QuerySchema;
-  requestBody?: JsonSchema;
+  requestBody?: JsonRequestBodySchema;
   responseBody: JsonSchema;
   responseError?: JsonSchema;
 };
