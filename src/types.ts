@@ -28,7 +28,7 @@ export type Json5Schema = z.ZodTypeAny;
 export type JsonRequestBodySchema =
   | z.ZodArray<JsonSchema, z.ArrayCardinality>
   | z.ZodIntersection<JsonRequestBodySchema, JsonRequestBodySchema>
-  | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
+  | ZodObject
   | z.ZodRecord<z.ZodString, JsonSchema>
   | z.ZodTuple<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>
   | z.ZodUnion<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>;
@@ -41,7 +41,7 @@ export type JsonSchema =
   | z.ZodLiteral<boolean | number | string>
   | z.ZodNull
   | z.ZodNumber
-  | z.ZodObject<z.ZodRawShape, 'passthrough' | 'strict' | 'strip'>
+  | ZodObject
   | z.ZodRecord<z.ZodString, JsonSchema>
   | z.ZodString
   | z.ZodTuple<[JsonSchema, ...JsonSchema[]]>
@@ -56,7 +56,7 @@ export type Method =
   | 'post'
   | 'put';
 
-export type ParamsSchema = z.ZodObject<z.ZodRawShape>;
+export type ParamsSchema = ZodObject;
 
 export type ParamsShape<TParamsSchema extends ParamsSchema | undefined> =
   TParamsSchema extends ParamsSchema ? z.infer<TParamsSchema> : never;
@@ -139,6 +139,11 @@ export type RequestShape<TRequestSchema extends RequestSchema> = {
 export type RouterSchema = {
   [KPath in Path]: EndpointSchema;
 };
+
+export type ZodObject = z.ZodObject<
+  z.ZodRawShape,
+  'passthrough' | 'strict' | 'strip'
+>;
 
 export type ZodShape<
   T extends JsonSchema | undefined = JsonSchema | undefined,

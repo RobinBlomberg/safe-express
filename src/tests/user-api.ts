@@ -21,7 +21,7 @@ export const userApi = {
   },
   '/:id': {
     get: {
-      params: z.object({
+      params: z.strictObject({
         id: z.string().transform(Number),
       }),
       responseBody: $user,
