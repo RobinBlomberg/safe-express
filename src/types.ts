@@ -16,8 +16,10 @@ export type Json5Schema = z.ZodTypeAny;
  */
 export type JsonRequestBodySchema =
   | z.ZodArray<JsonSchema, z.ArrayCardinality>
+  | z.ZodEffects<JsonRequestBodySchema, unknown, unknown>
   | z.ZodIntersection<JsonRequestBodySchema, JsonRequestBodySchema>
   | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
+  | z.ZodOptional<JsonRequestBodySchema>
   | z.ZodRecord<z.ZodString, JsonSchema>
   | z.ZodTuple<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>
   | z.ZodUnion<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>;
@@ -26,12 +28,14 @@ export type JsonSchema =
   | z.ZodArray<z.ZodTypeAny, z.ArrayCardinality>
   | z.ZodBoolean
   | z.ZodDate // This will be converted to a string when serializing JSON.
+  | z.ZodEffects<JsonSchema, unknown, unknown>
   | z.ZodIntersection<JsonSchema, JsonSchema>
   | z.ZodLiteral<boolean | number | string>
   | z.ZodNull
   | z.ZodNumber
   // @ts-expect-error This produces a circular reference for some reason:
   | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
+  | z.ZodOptional<JsonSchema>
   | z.ZodRecord<z.ZodString, JsonSchema>
   | z.ZodString
   | z.ZodTuple<[JsonSchema, ...JsonSchema[]]>
