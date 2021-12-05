@@ -8,11 +8,11 @@ export const userApi = {
     get: {
       query: z
         .object({
-          ids: z.array(z.number()).optional(),
-          names: z.array(z.string()).optional(),
+          ids: z.number().array().optional(),
+          names: z.string().array().optional(),
         })
         .optional(),
-      responseBody: z.array($user),
+      responseBody: $user.array(),
     },
     post: {
       requestBody: $newUser,
@@ -21,11 +21,23 @@ export const userApi = {
   },
   '/:id': {
     get: {
-      params: z.strictObject({
-        id: z.string().transform(Number),
-      }),
+      params: {
+        id: z.number(),
+      },
       responseBody: $user,
       responseError: z.literal('User not found'),
+    },
+  },
+  '/:id/:id2': {
+    get: {
+      params: {
+        id: z.number(),
+        id2: z.string(),
+      },
+      responseBody: z.strictObject({
+        id: z.number(),
+        id2: z.string(),
+      }),
     },
   },
   '/date': {

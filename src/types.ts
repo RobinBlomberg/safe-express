@@ -5,17 +5,6 @@ export type ApiSchema = {
   [KPath in Path]: RouterSchema;
 };
 
-export type CombinedParams<
-  TPath extends Path = Path,
-  TRequestSchema extends RequestSchema = RequestSchema,
-> = {
-  [K in keyof Express.RouteParameters<TPath>]: ParamsShape<
-    TRequestSchema['params']
-  >[K] extends undefined
-    ? Express.RouteParameters<TPath>[K]
-    : ParamsShape<TRequestSchema['params']>[K];
-};
-
 export type EndpointSchema = {
   [KMethod in Method]?: RequestSchema;
 };
@@ -28,7 +17,7 @@ export type Json5Schema = z.ZodTypeAny;
 export type JsonRequestBodySchema =
   | z.ZodArray<JsonSchema, z.ArrayCardinality>
   | z.ZodIntersection<JsonRequestBodySchema, JsonRequestBodySchema>
-  | ZodObject
+  | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
   | z.ZodRecord<z.ZodString, JsonSchema>
   | z.ZodTuple<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>
   | z.ZodUnion<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>;
@@ -36,12 +25,13 @@ export type JsonRequestBodySchema =
 export type JsonSchema =
   | z.ZodArray<z.ZodTypeAny, z.ArrayCardinality>
   | z.ZodBoolean
-  | z.ZodDate // This will be converted to a string.
+  | z.ZodDate // This will be converted to a string when serializing JSON.
   | z.ZodIntersection<JsonSchema, JsonSchema>
   | z.ZodLiteral<boolean | number | string>
   | z.ZodNull
   | z.ZodNumber
-  | ZodObject
+  // @ts-expect-error This produces a circular reference for some reason:
+  | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
   | z.ZodRecord<z.ZodString, JsonSchema>
   | z.ZodString
   | z.ZodTuple<[JsonSchema, ...JsonSchema[]]>
@@ -56,10 +46,16 @@ export type Method =
   | 'post'
   | 'put';
 
-export type ParamsSchema = ZodObject;
+export type ParamsValue = z.ZodNumber | z.ZodString;
+
+export type ParamsSchema = {
+  [K: string]: ParamsValue;
+};
 
 export type ParamsShape<TParamsSchema extends ParamsSchema | undefined> =
-  TParamsSchema extends ParamsSchema ? z.infer<TParamsSchema> : never;
+  TParamsSchema extends ParamsSchema
+    ? { [K in keyof TParamsSchema]: z.infer<TParamsSchema[K]> }
+    : never;
 
 export type Path = `/${string}`;
 
@@ -79,7 +75,7 @@ export type RequestHandler<
   TProps extends Props = Props,
 > = TRequestSchema extends RequestSchema
   ? RequestHandlerWithProps<
-      CombinedParams<TPath, TRequestSchema>,
+      ParamsShape<TRequestSchema['params']>,
       ZodShape<
         TRequestSchema['responseBody'] | TRequestSchema['responseError']
       >,
@@ -88,7 +84,7 @@ export type RequestHandler<
       TProps
     >
   : RequestHandlerWithProps<
-      CombinedParams<TPath>,
+      Express.RouteParameters<TPath>,
       ZodShape,
       ZodShape,
       QueryShape,
@@ -139,11 +135,6 @@ export type RequestShape<TRequestSchema extends RequestSchema> = {
 export type RouterSchema = {
   [KPath in Path]: EndpointSchema;
 };
-
-export type ZodObject = z.ZodObject<
-  z.ZodRawShape,
-  'passthrough' | 'strict' | 'strip'
->;
 
 export type ZodShape<
   T extends JsonSchema | undefined = JsonSchema | undefined,

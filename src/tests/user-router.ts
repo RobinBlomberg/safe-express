@@ -50,6 +50,10 @@ userRouter.get('/:id', (req, res) => {
   return res.json(foundUser);
 });
 
+userRouter.get('/:id/:id2', (req, res) => {
+  res.json(req.params);
+});
+
 userRouter.post('/', (req, res) => {
   const user = {
     ...req.body,
