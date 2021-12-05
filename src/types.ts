@@ -29,9 +29,12 @@ export type JsonSchema =
   | z.ZodBoolean
   | z.ZodDate // This will be converted to a string when serializing JSON.
   | z.ZodEffects<JsonSchema, unknown, unknown>
+  | z.ZodEnum<[string, ...string[]]>
   | z.ZodIntersection<JsonSchema, JsonSchema>
   | z.ZodLiteral<boolean | number | string>
+  | z.ZodNativeEnum<{ [K: string]: string | number; [N: number]: string }>
   | z.ZodNull
+  | z.ZodNullable<JsonSchema>
   | z.ZodNumber
   // @ts-expect-error This produces a circular reference for some reason:
   | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
