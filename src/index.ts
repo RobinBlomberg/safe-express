@@ -1,4 +1,3 @@
-import { ESON } from '@robinblomberg/eson';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import {
@@ -15,6 +14,7 @@ import {
   RequestParser,
   RouterSchema,
 } from './types';
+import { sendEson } from './utils/send-eson';
 
 export * from './types';
 
@@ -67,8 +67,8 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
 
       if (!headersSent) {
         const res = Object.assign(originalRes, {
-          eson: (value: unknown) => {
-            res.type('js').send(ESON.stringify(value));
+          eson: (body?: any) => {
+            sendEson(res, body);
           },
         });
         const returnee = originalRequestHandler(req as any, res, next);

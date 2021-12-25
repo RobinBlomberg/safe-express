@@ -1,6 +1,6 @@
-import { ESON } from '@robinblomberg/eson';
 import { Request, Response } from 'express';
 import { Method, RouterSchema } from '../types';
+import { sendEson } from '../utils/send-eson';
 
 const STATUS_BAD_REQUEST = 400;
 
@@ -15,15 +15,12 @@ export const requestBodyParser = (routerSchema: RouterSchema) => {
     if (bodySchema) {
       const result = bodySchema.safeParse(req.body);
       if (!result.success) {
-        res
-          .status(STATUS_BAD_REQUEST)
-          .type('js')
-          .end(
-            ESON.stringify({
-              code: 'invalid_request_body',
-              errors: result.error.errors,
-            }),
-          );
+        res.status(STATUS_BAD_REQUEST);
+        console.log('invalid_request_body');
+        sendEson(res, {
+          code: 'invalid_request_body',
+          errors: result.error.errors,
+        });
         return true;
       }
     }

@@ -1,6 +1,7 @@
 import { ESON } from '@robinblomberg/eson';
 import { Request, Response } from 'express';
 import { Method, RouterSchema } from '../types';
+import { sendEson } from '../utils/send-eson';
 
 const STATUS_BAD_REQUEST = 400;
 
@@ -22,15 +23,11 @@ export const queryParser = (routerSchema: RouterSchema) => {
       if (querySchema) {
         const result = querySchema.safeParse(req.query);
         if (!result.success) {
-          res
-            .status(STATUS_BAD_REQUEST)
-            .type('js')
-            .end(
-              ESON.stringify({
-                code: 'invalid_query',
-                errors: result.error.errors,
-              }),
-            );
+          res.status(STATUS_BAD_REQUEST);
+          sendEson(res, {
+            code: 'invalid_query',
+            errors: result.error.errors,
+          });
           return true;
         }
       }

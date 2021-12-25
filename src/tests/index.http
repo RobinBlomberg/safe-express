@@ -1,24 +1,24 @@
 ###
-GET http://localhost:3000/api/v1/user
+GET http://localhost:3003/api/v1/user
 
 ###
-GET http://localhost:3000/api/v1/user?({ ids: [0, 2], names: ['Charlotte'] })
+GET http://localhost:3003/api/v1/user?({ ids: [0, 2], names: ['Charlotte'] })
 
 ###
-GET http://localhost:3000/api/v1/user/0
+GET http://localhost:3003/api/v1/user/0
 
 ###
-GET http://localhost:3000/api/v1/user/0/2
+GET http://localhost:3003/api/v1/user/0/2
 
 ###
-GET http://localhost:3000/api/v1/user/date?new Date('2021-12-03T09:58:55.483Z')
+GET http://localhost:3003/api/v1/user/date?new Date('2021-12-03T09:58:55.483Z')
 
 ###
-GET http://localhost:3000/api/v1/user/me
+GET http://localhost:3003/api/v1/user/me
 Cookie: user=({ email: 'chala@gov.uk', id: 34, name: 'Charlotte' })
 
 ###
-POST http://localhost:3000/api/v1/user
+POST http://localhost:3003/api/v1/user
 Content-Type: application/javascript
 
 ({

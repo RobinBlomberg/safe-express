@@ -108,7 +108,17 @@ export type Response<TResponseBody> = Express.Response<
   TResponseBody,
   Record<string, any>
 > & {
-  eson(value: unknown): void;
+  /**
+   * Send JSON response.
+   *
+   * Examples:
+   *
+   *     res.eson(null);
+   *     res.eson({ user: 'tj' });
+   *     res.status(500).eson('oh noes!');
+   *     res.status(404).eson('I dont have that');
+   */
+  eson(body?: any): void;
 };
 
 export type RouterSchema = {
