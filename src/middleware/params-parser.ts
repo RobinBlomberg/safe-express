@@ -1,3 +1,4 @@
+import { ESON } from '@robinblomberg/eson';
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { Method, RouterSchema } from '../types';
@@ -28,11 +29,15 @@ export const paramsParser = (routerSchema: RouterSchema) => {
       const result = paramsSchema.safeParse(req.params);
 
       if (!result.success) {
-        res.status(STATUS_BAD_REQUEST);
-        res.json({
-          code: 'invalid_params',
-          errors: result.error.errors,
-        });
+        res
+          .status(STATUS_BAD_REQUEST)
+          .type('js')
+          .end(
+            ESON.stringify({
+              code: 'invalid_params',
+              errors: result.error.errors,
+            }),
+          );
         return true;
       }
 

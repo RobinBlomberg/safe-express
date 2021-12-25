@@ -1,6 +1,12 @@
+import { ESON } from '@robinblomberg/eson';
 import cookieParser from 'cookie-parser';
 import express from 'express';
-import { paramsParser, queryParser, requestBodyParser } from './middleware';
+import {
+  esonParser,
+  paramsParser,
+  queryParser,
+  requestBodyParser,
+} from './middleware';
 import {
   Method,
   Path,
@@ -18,10 +24,12 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
 
   constructor(schema: RS) {
     this.router.use(express.json());
+    this.router.use(express.text({ type: 'application/javascript' }));
     this.router.use(express.urlencoded({ extended: true }));
     this.router.use(cookieParser());
 
     this.parsers = [
+      esonParser(),
       paramsParser(schema),
       queryParser(schema),
       requestBodyParser(schema),
@@ -37,25 +45,20 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
     M extends Method,
     P extends keyof RS & Path,
     RH extends RequestHandler<P, RS[P][M], RP>,
-  >(
-    method: M,
-    path: P,
-    middleware: express.RequestHandler[],
-    originalRequestHandler: RH,
-  ): void;
+  >(method: M, path: P, middleware: any[], originalRequestHandler: RH): void;
   #on<
     M extends Method,
     P extends keyof RS & Path,
     RH extends RequestHandler<P, RS[P][M], RP>,
   >(method: M, path: P, ...args: (express.RequestHandler[] | RH)[]) {
-    const middleware = args.slice(0, -1) as express.RequestHandler[];
+    const middleware = args.slice(0, -1) as any[];
     const originalRequestHandler = args[args.length - 1] as RH;
 
-    const requestHandler: express.RequestHandler = (req, res, next) => {
+    const requestHandler: express.RequestHandler = (req, originalRes, next) => {
       let headersSent = false;
 
       for (const parser of this.parsers) {
-        headersSent = parser(req, res);
+        headersSent = parser(req, originalRes);
 
         if (headersSent) {
           break;
@@ -63,6 +66,11 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
       }
 
       if (!headersSent) {
+        const res = Object.assign(originalRes, {
+          eson: (value: unknown) => {
+            res.type('js').end(ESON.stringify(value));
+          },
+        });
         const returnee = originalRequestHandler(req as any, res, next);
 
         Promise.resolve(returnee).catch(next);
@@ -78,7 +86,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   delete<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['delete'], RP>,
   ): void;
   delete<P extends keyof RS & Path>(
@@ -97,7 +105,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   get<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['get'], RP>,
   ): void;
   get<P extends keyof RS & Path>(
@@ -113,7 +121,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   head<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['head'], RP>,
   ): void;
   head<P extends keyof RS & Path>(
@@ -129,7 +137,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   options<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['options'], RP>,
   ): void;
   options<P extends keyof RS & Path>(
@@ -148,7 +156,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   patch<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['patch'], RP>,
   ): void;
   patch<P extends keyof RS & Path>(
@@ -167,7 +175,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   post<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['post'], RP>,
   ): void;
   post<P extends keyof RS & Path>(
@@ -183,7 +191,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   ): void;
   put<P extends keyof RS & Path>(
     path: P,
-    middleware: express.RequestHandler[],
+    middleware: any[],
     requestHandler: RequestHandler<P, RS[P]['put'], RP>,
   ): void;
   put<P extends keyof RS & Path>(

@@ -1,9 +1,9 @@
-import { RequestHandlerWithProps } from '../types';
+import { GenericRequestHandler } from '../types';
 
 const STATUS_CODE_UNAUTHORIZED = 401;
 
 export const withAuth = () => {
-  const requestHandler: RequestHandlerWithProps<
+  const requestHandler: GenericRequestHandler<
     {},
     any,
     any,
@@ -13,7 +13,7 @@ export const withAuth = () => {
     if (!req.user || req.user.id == null) {
       res
         .status(STATUS_CODE_UNAUTHORIZED)
-        .json({ code: 'UserNotAuthorized', errors: [] });
+        .eson({ code: 'UserNotAuthorized', errors: [] });
       return;
     }
 

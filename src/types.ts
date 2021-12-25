@@ -9,40 +9,24 @@ export type EndpointSchema = {
   [KMethod in Method]?: RequestSchema;
 };
 
-export type Json5Schema = z.ZodTypeAny;
-
-/**
- * NOTE: body-parser requires the first request body JSON character to be "{" or "[".
- */
-export type JsonRequestBodySchema =
-  | z.ZodArray<JsonSchema, z.ArrayCardinality>
-  | z.ZodEffects<JsonRequestBodySchema, unknown, unknown>
-  | z.ZodIntersection<JsonRequestBodySchema, JsonRequestBodySchema>
-  | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
-  | z.ZodOptional<JsonRequestBodySchema>
-  | z.ZodRecord<z.ZodString, JsonSchema>
-  | z.ZodTuple<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>
-  | z.ZodUnion<[JsonRequestBodySchema, ...JsonRequestBodySchema[]]>;
-
-export type JsonSchema =
-  | z.ZodArray<z.ZodTypeAny, z.ArrayCardinality>
-  | z.ZodBoolean
-  | z.ZodDate // This will be converted to a string when serializing JSON.
-  | z.ZodEffects<JsonSchema, unknown, unknown>
-  | z.ZodEnum<[string, ...string[]]>
-  | z.ZodIntersection<JsonSchema, JsonSchema>
-  | z.ZodLiteral<boolean | number | string>
-  | z.ZodNativeEnum<{ [K: string]: string | number; [N: number]: string }>
-  | z.ZodNull
-  | z.ZodNullable<JsonSchema>
-  | z.ZodNumber
-  // @ts-expect-error This produces a circular reference for some reason:
-  | z.ZodObject<{ [K: string]: JsonSchema }, 'passthrough' | 'strict' | 'strip'>
-  | z.ZodOptional<JsonSchema>
-  | z.ZodRecord<z.ZodString, JsonSchema>
-  | z.ZodString
-  | z.ZodTuple<[JsonSchema, ...JsonSchema[]]>
-  | z.ZodUnion<[JsonSchema, ...JsonSchema[]]>;
+export type GenericRequestHandler<
+  TParams extends Record<string, unknown> = Record<string, unknown>,
+  TResponseBody = unknown,
+  TRequestBody = unknown,
+  TQuery extends unknown = unknown,
+  TProps extends Props = Props,
+> = (
+  req: Express.Request<
+    TParams,
+    TResponseBody,
+    TRequestBody,
+    TQuery,
+    Record<string, any>
+  > &
+    TProps,
+  res: Response<TResponseBody>,
+  next: Express.NextFunction,
+) => void;
 
 export type Method =
   | 'delete'
@@ -70,7 +54,7 @@ export type Props = {
   [K in number | string | symbol]: unknown;
 };
 
-export type QuerySchema = Json5Schema;
+export type QuerySchema = z.ZodTypeAny;
 
 export type QueryShape<
   TQuerySchema extends QuerySchema | undefined = QuerySchema | undefined,
@@ -81,7 +65,7 @@ export type RequestHandler<
   TRequestSchema extends RequestSchema | undefined = RequestSchema | undefined,
   TProps extends Props = Props,
 > = TRequestSchema extends RequestSchema
-  ? RequestHandlerWithProps<
+  ? GenericRequestHandler<
       ParamsShape<TRequestSchema['params']>,
       ZodShape<
         TRequestSchema['responseBody'] | TRequestSchema['responseError']
@@ -90,32 +74,13 @@ export type RequestHandler<
       QueryShape<TRequestSchema['query']>,
       TProps
     >
-  : RequestHandlerWithProps<
+  : GenericRequestHandler<
       Express.RouteParameters<TPath>,
       ZodShape,
       ZodShape,
       QueryShape,
       TProps
     >;
-
-export type RequestHandlerWithProps<
-  TParams extends Record<string, unknown>,
-  TResponseBody,
-  TRequestBody,
-  TQuery extends unknown,
-  TProps extends Props,
-> = (
-  req: Express.Request<
-    TParams,
-    TResponseBody,
-    TRequestBody,
-    TQuery,
-    Record<string, any>
-  > &
-    TProps,
-  res: Express.Response<TResponseBody, Record<string, any>>,
-  next: Express.NextFunction,
-) => void;
 
 export type RequestParser = (
   req: Express.Request,
@@ -125,9 +90,9 @@ export type RequestParser = (
 export type RequestSchema = {
   params?: ParamsSchema;
   query?: QuerySchema;
-  requestBody?: JsonRequestBodySchema;
-  responseBody: JsonSchema;
-  responseError?: JsonSchema;
+  requestBody?: z.ZodTypeAny;
+  responseBody: z.ZodTypeAny;
+  responseError?: z.ZodTypeAny;
 };
 
 export type RequestShape<TRequestSchema extends RequestSchema> = {
@@ -139,10 +104,17 @@ export type RequestShape<TRequestSchema extends RequestSchema> = {
   >;
 };
 
+export type Response<TResponseBody> = Express.Response<
+  TResponseBody,
+  Record<string, any>
+> & {
+  eson(value: unknown): void;
+};
+
 export type RouterSchema = {
   [KPath in Path]: EndpointSchema;
 };
 
 export type ZodShape<
-  T extends JsonSchema | undefined = JsonSchema | undefined,
-> = T extends JsonSchema ? z.infer<T> : never;
+  T extends z.ZodTypeAny | undefined = z.ZodTypeAny | undefined,
+> = T extends z.ZodTypeAny ? z.infer<T> : never;

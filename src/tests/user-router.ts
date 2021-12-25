@@ -1,3 +1,4 @@
+import { ESON } from '@robinblomberg/eson';
 import { Router } from '..';
 import { UserApi, userApi } from './user-api';
 import { User } from './user-schemas';
@@ -14,7 +15,7 @@ const userRouter = new Router<UserApi, Props>(userApi);
 
 userRouter.use((req, res, next) => {
   try {
-    req.user = JSON.parse(req.cookies.user);
+    req.user = ESON.parse(req.cookies.user);
   } catch {}
 
   next();
@@ -29,29 +30,29 @@ userRouter.get('/', (req, res) => {
     );
   });
 
-  res.json(filteredUsers);
+  res.eson(filteredUsers);
 });
 
 userRouter.get('/date', (req, res) => {
-  res.json(req.query);
+  res.eson(req.query);
 });
 
 userRouter.get('/me', [withAuth()], (req, res) => {
-  res.json(req.user);
+  res.eson(req.user);
 });
 
 userRouter.get('/:id', (req, res) => {
   const foundUser = users.find((user) => user.id === req.params.id);
 
   if (!foundUser) {
-    return res.status(404).json('User not found');
+    return res.status(404).eson('User not found');
   }
 
-  return res.json(foundUser);
+  return res.eson(foundUser);
 });
 
 userRouter.get('/:id/:id2', (req, res) => {
-  res.json(req.params);
+  res.eson(req.params);
 });
 
 userRouter.post('/', (req, res) => {
@@ -62,7 +63,7 @@ userRouter.post('/', (req, res) => {
 
   users.push(user);
 
-  res.json(user);
+  res.eson(user);
 });
 
 export { userRouter };
