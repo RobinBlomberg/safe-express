@@ -68,7 +68,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
       if (!headersSent) {
         const res = Object.assign(originalRes, {
           eson: (value: unknown) => {
-            res.type('js').end(ESON.stringify(value));
+            res.type('js').send(ESON.stringify(value));
           },
         });
         const returnee = originalRequestHandler(req as any, res, next);
