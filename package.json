@@ -1,6 +1,6 @@
 {
   "name": "@robinblomberg/safe-express",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "author": "Robin Blomberg",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "test": "tsc-watch --onSuccess \"node --enable-source-maps ./dist/tests/index.test.js\""
   },
   "dependencies": {
-    "@robinblomberg/eson": "^0.2.1",
+    "@robinblomberg/eson": "^0.2.2",
     "cookie-parser": "^1.4.6",
     "express": "^4.17.2",
     "zod": "^3.11.6"
