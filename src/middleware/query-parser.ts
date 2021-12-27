@@ -1,6 +1,5 @@
 import { ESON } from '@robinblomberg/eson';
-import { Request, Response } from 'express';
-import { Method, RouterSchema } from '../types';
+import { Method, RequestParser, RouterSchema } from '../types';
 import { sendEson } from '../utils/send-eson';
 
 const STATUS_BAD_REQUEST = 400;
@@ -9,7 +8,7 @@ const STATUS_BAD_REQUEST = 400;
  * @return Indicates whether the headers have been sent.
  */
 export const queryParser = (routerSchema: RouterSchema) => {
-  const requestHandler = (req: Request, res: Response) => {
+  const requestHandler: RequestParser = (req, res) => {
     const searchIndex = req.originalUrl.indexOf('?');
     const search =
       searchIndex === -1 ? '' : req.originalUrl.slice(searchIndex + 1);

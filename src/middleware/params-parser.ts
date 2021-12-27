@@ -1,6 +1,5 @@
-import { Request, Response } from 'express';
 import { z } from 'zod';
-import { Method, RouterSchema } from '../types';
+import { Method, RequestParser, RouterSchema } from '../types';
 import { sendEson } from '../utils/send-eson';
 
 const STATUS_BAD_REQUEST = 400;
@@ -9,7 +8,7 @@ const STATUS_BAD_REQUEST = 400;
  * @return Indicates whether the headers have been sent.
  */
 export const paramsParser = (routerSchema: RouterSchema) => {
-  const requestHandler = (req: Request, res: Response) => {
+  const requestHandler: RequestParser = (req, res) => {
     const method = req.method.toLowerCase() as Method;
     const paramsDefinition = routerSchema[req.route.path]?.[method]?.params;
 
@@ -17,7 +16,7 @@ export const paramsParser = (routerSchema: RouterSchema) => {
       const shape: Record<string, z.ZodTypeAny> = {};
 
       for (const param in paramsDefinition) {
-        if (Object.prototype.hasOwnProperty.call(paramsDefinition, param)) {
+        if (paramsDefinition[param]) {
           shape[param] =
             paramsDefinition[param]!._def.typeName === 'ZodNumber'
               ? z.string().transform(Number)

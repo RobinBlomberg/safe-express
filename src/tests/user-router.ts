@@ -41,6 +41,10 @@ userRouter.get('/me', [withAuth()], (req, res) => {
   res.eson(req.user);
 });
 
+userRouter.get('/me2', withAuth(), (req, res) => {
+  res.eson(req.user);
+});
+
 userRouter.get('/:id', (req, res) => {
   const foundUser = users.find((user) => user.id === req.params.id);
 

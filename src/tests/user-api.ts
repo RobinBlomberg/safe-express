@@ -51,4 +51,9 @@ export const userApi = {
       responseBody: $user,
     },
   },
+  '/me2': {
+    get: {
+      responseBody: $user,
+    },
+  },
 };

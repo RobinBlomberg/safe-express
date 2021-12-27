@@ -1,12 +1,14 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import {
-  esonParser,
+  eson,
   paramsParser,
   queryParser,
   requestBodyParser,
 } from './middleware';
 import {
+  ApiRequestHandler,
+  Enumerable,
   Method,
   Path,
   Props,
@@ -14,7 +16,6 @@ import {
   RequestParser,
   RouterSchema,
 } from './types';
-import { sendEson } from './utils/send-eson';
 
 export * from './types';
 
@@ -29,7 +30,7 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
     this.router.use(cookieParser());
 
     this.parsers = [
-      esonParser(),
+      eson(),
       paramsParser(schema),
       queryParser(schema),
       requestBodyParser(schema),
@@ -39,26 +40,26 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
   #on<
     M extends Method,
     P extends keyof RS & Path,
-    RH extends RequestHandler<P, RS[P][M], RP>,
+    RH extends ApiRequestHandler<P, RS[P][M], RP>,
   >(method: M, path: P, originalRequestHandler: RH): void;
   #on<
     M extends Method,
     P extends keyof RS & Path,
-    RH extends RequestHandler<P, RS[P][M], RP>,
-  >(method: M, path: P, middleware: any[], originalRequestHandler: RH): void;
+    RH extends ApiRequestHandler<P, RS[P][M], RP>,
+  >(method: M, path: P, middleware: any, originalRequestHandler: RH): void;
   #on<
     M extends Method,
     P extends keyof RS & Path,
-    RH extends RequestHandler<P, RS[P][M], RP>,
-  >(method: M, path: P, ...args: (express.RequestHandler[] | RH)[]) {
-    const middleware = args.slice(0, -1) as any[];
+    RH extends ApiRequestHandler<P, RS[P][M], RP>,
+  >(method: M, path: P, ...args: (Enumerable<RequestHandler> | RH)[]) {
+    const middleware = args.slice(0, -1);
     const originalRequestHandler = args[args.length - 1] as RH;
 
-    const requestHandler: express.RequestHandler = (req, originalRes, next) => {
+    const requestHandler: RequestHandler = (req, res, next) => {
       let headersSent = false;
 
       for (const parser of this.parsers) {
-        headersSent = parser(req, originalRes);
+        headersSent = parser(req, res);
 
         if (headersSent) {
           break;
@@ -66,34 +67,29 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
       }
 
       if (!headersSent) {
-        const res = Object.assign(originalRes, {
-          eson: (body?: any) => {
-            sendEson(res, body);
-          },
-        });
         const returnee = originalRequestHandler(req as any, res, next);
 
         Promise.resolve(returnee).catch(next);
       }
     };
 
-    this.router[method](path, ...middleware, requestHandler);
+    this.router[method](path, ...(middleware as any), requestHandler as any);
   }
 
   delete<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['delete'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['delete'], RP>,
   ): void;
   delete<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['delete'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['delete'], RP>,
   ): void;
   delete<P extends keyof RS & Path>(
     path: P,
     ...args: (
-      | RequestHandler<P, RS[P]['delete'], RP>
-      | express.RequestHandler[]
+      | ApiRequestHandler<P, RS[P]['delete'], RP>
+      | Enumerable<RequestHandler>
     )[]
   ) {
     (this.#on as Function).call(this, 'delete', path, ...args);
@@ -101,50 +97,56 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
 
   get<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['get'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['get'], RP>,
   ): void;
   get<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['get'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['get'], RP>,
   ): void;
   get<P extends keyof RS & Path>(
     path: P,
-    ...args: (RequestHandler<P, RS[P]['get'], RP> | express.RequestHandler[])[]
+    ...args: (
+      | ApiRequestHandler<P, RS[P]['get'], RP>
+      | Enumerable<RequestHandler>
+    )[]
   ) {
     (this.#on as Function).call(this, 'get', path, ...args);
   }
 
   head<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['head'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['head'], RP>,
   ): void;
   head<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['head'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['head'], RP>,
   ): void;
   head<P extends keyof RS & Path>(
     path: P,
-    ...args: (RequestHandler<P, RS[P]['head'], RP> | express.RequestHandler[])[]
+    ...args: (
+      | ApiRequestHandler<P, RS[P]['head'], RP>
+      | Enumerable<RequestHandler>
+    )[]
   ) {
     (this.#on as Function).call(this, 'head', path, ...args);
   }
 
   options<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['options'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['options'], RP>,
   ): void;
   options<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['options'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['options'], RP>,
   ): void;
   options<P extends keyof RS & Path>(
     path: P,
     ...args: (
-      | RequestHandler<P, RS[P]['options'], RP>
-      | express.RequestHandler[]
+      | ApiRequestHandler<P, RS[P]['options'], RP>
+      | Enumerable<RequestHandler>
     )[]
   ) {
     (this.#on as Function).call(this, 'options', path, ...args);
@@ -152,18 +154,18 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
 
   patch<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['patch'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['patch'], RP>,
   ): void;
   patch<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['patch'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['patch'], RP>,
   ): void;
   patch<P extends keyof RS & Path>(
     path: P,
     ...args: (
-      | RequestHandler<P, RS[P]['patch'], RP>
-      | express.RequestHandler[]
+      | ApiRequestHandler<P, RS[P]['patch'], RP>
+      | Enumerable<RequestHandler>
     )[]
   ) {
     (this.#on as Function).call(this, 'patch', path, ...args);
@@ -171,37 +173,43 @@ export class Router<RS extends RouterSchema, RP extends Props = {}> {
 
   post<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['post'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['post'], RP>,
   ): void;
   post<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['post'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['post'], RP>,
   ): void;
   post<P extends keyof RS & Path>(
     path: P,
-    ...args: (RequestHandler<P, RS[P]['post'], RP> | express.RequestHandler[])[]
+    ...args: (
+      | ApiRequestHandler<P, RS[P]['post'], RP>
+      | Enumerable<RequestHandler>
+    )[]
   ) {
     (this.#on as Function).call(this, 'post', path, ...args);
   }
 
   put<P extends keyof RS & Path>(
     path: P,
-    requestHandler: RequestHandler<P, RS[P]['put'], RP>,
+    requestHandler: ApiRequestHandler<P, RS[P]['put'], RP>,
   ): void;
   put<P extends keyof RS & Path>(
     path: P,
-    middleware: any[],
-    requestHandler: RequestHandler<P, RS[P]['put'], RP>,
+    middleware: any,
+    requestHandler: ApiRequestHandler<P, RS[P]['put'], RP>,
   ): void;
   put<P extends keyof RS & Path>(
     path: P,
-    ...args: (RequestHandler<P, RS[P]['put'], RP> | express.RequestHandler[])[]
+    ...args: (
+      | ApiRequestHandler<P, RS[P]['put'], RP>
+      | Enumerable<RequestHandler>
+    )[]
   ) {
     (this.#on as Function).call(this, 'put', path, ...args);
   }
 
-  use(handler: RequestHandler<Path, RS[Path][Method], RP>) {
-    this.router.use(handler as express.RequestHandler);
+  use(handler: ApiRequestHandler<Path, RS[Path][Method], RP>) {
+    this.router.use(handler as any);
   }
 }
