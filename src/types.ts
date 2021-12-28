@@ -127,7 +127,7 @@ export type Response<TResponseBody = unknown> = express.Response<
    *     res.status(500).eson('oh noes!');
    *     res.status(404).eson('I dont have that');
    */
-  eson(body?: any): void;
+  eson(body?: TResponseBody): void;
 };
 
 export type RouterSchema = {
