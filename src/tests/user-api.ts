@@ -56,4 +56,10 @@ export const userApi = {
       responseBody: $user,
     },
   },
+  '/undefined': {
+    post: {
+      requestBody: z.strictObject({ message: z.string() }).optional(),
+      responseBody: z.strictObject({ message: z.string() }).optional(),
+    },
+  },
 };

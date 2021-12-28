@@ -29,3 +29,9 @@ Content-Type: application/javascript
   email: 'frank@example.com',
   name: 'Frank'
 })
+
+###
+POST http://localhost:3003/api/v1/user/undefined
+Content-Type: application/javascript
+
+undefined

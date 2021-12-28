@@ -70,4 +70,8 @@ userRouter.post('/', (req, res) => {
   res.eson(user);
 });
 
+userRouter.post('/undefined', (req, res) => {
+  res.eson(req.body);
+});
+
 export { userRouter };

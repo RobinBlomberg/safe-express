@@ -1,6 +1,6 @@
 {
   "name": "@robinblomberg/safe-express",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "author": "Robin Blomberg",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
